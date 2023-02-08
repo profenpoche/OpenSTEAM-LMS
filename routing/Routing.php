@@ -25,15 +25,16 @@ use Learn\Controller\ControllerFavorite;
 use Learn\Controller\ControllerCollection;
 use Interfaces\Controller\ControllerProject;
 use Classroom\Controller\ControllerClassroom;
-use Utils\Exceptions\EntityOperatorException;
-
-
-
-use Classroom\Controller\ControllerGroupAdmin;
-use Classroom\Controller\ControllerSuperAdmin;
-
 use Learn\Controller\ControllerNewActivities;
 
+
+
+use Utils\Exceptions\EntityOperatorException;
+use Classroom\Controller\ControllerGroupAdmin;
+
+use Classroom\Controller\ControllerSuperAdmin;
+
+use Classroom\Controller\ControllerCourseLinkUser;
 use Learn\Controller\ControllerCourseLinkCourse;
 use Utils\Exceptions\EntityDataIntegrityException;
 use Classroom\Controller\ControllerActivityLinkUser;
@@ -87,6 +88,7 @@ function cors()
         }
     }
 
+use Utils\Controller\ControllerUpload;
 
 $dotenv = Dotenv::createImmutable(__DIR__ . "/../");
 $dotenv->safeLoad();
@@ -104,9 +106,12 @@ try {
     session_start();
     $user = null;
     if (isset($_SESSION["id"])) {
-        $user = $entityManager->getRepository('User\Entity\User')
-            ->find(intval($_SESSION["id"]))->jsonSerialize();
-
+        $user = $entityManager->getRepository('User\Entity\User')->find(intval($_SESSION["id"]))->jsonSerialize();
+        $storedClassroom = $entityManager->getRepository('Classroom\Entity\ClassroomLinkUser')->findOneBy(['user' => $_SESSION["id"]]);
+        if ($storedClassroom) {
+            $classroom = $storedClassroom->jsonSerialize();
+            $user["classroom"] = $classroom["classroom"]["id"];
+        }
         try {
             $regular = $entityManager->getRepository('User\Entity\Regular')
                 ->find(intval($_SESSION["id"]))->jsonSerialize();
@@ -252,6 +257,18 @@ try {
             break;
         case 'newActivities':
             $controller = new ControllerNewActivities($entityManager, $user);
+            echo (json_encode($controller->action($action, $_POST)));
+            $log->info($action, OK);
+            break;
+        case 'upload': 
+            $action = lcfirst(str_replace('_', '', ucwords($action, '_')));
+            $controllerUpload = new ControllerUpload($entityManager, $user);
+            echo json_encode(call_user_func(
+                array($controllerUpload,$action)
+            ));
+            break;
+        case 'user_link_course':
+            $controller = new ControllerCourseLinkUser($entityManager, $user);
             echo (json_encode($controller->action($action, $_POST)));
             $log->info($action, OK);
             break;

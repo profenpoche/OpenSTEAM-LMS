@@ -30,6 +30,7 @@ class AutoBuildManager {
             'home_topbar.html',
             'studentProfilePanel.html',
             'studentHelpPanel.html',
+            'studentCoursePanel.html',
             'sandboxPanel.html',
             'studentActivitiesPanel.html',
             'teacherProfilePanel.html',
@@ -44,6 +45,9 @@ class AutoBuildManager {
             'managerAppsPanel.html',
             'managerUsersPanel.html',
             'newExercicesPanel.html',
+            'appsMediaGalery.html',
+            'customAppsPanel.html',
+            'teacherCoursePanel.html',
             'idePanel.html',
             'home_footer.html',
         ];
@@ -194,6 +198,10 @@ class AutoBuildManager {
             await this.createFolder(`${this.pluginsFolderInClassroom}/css`);
             await this.createFolder(`${this.pluginsFolderInClassroom}/js`);
             await this.createFolder(`${this.pluginsFolderInClassroom}/images`);
+            await this.createFolder(`${this.pluginsFolderInClassroom}/media/`);
+            this.pluginsList.forEach(element => {
+                //this.createFolder(`${this.pluginsFolderInClassroom}/media/${element.name}`);
+            });
             resolve();
         });
     }
@@ -354,6 +362,7 @@ class AutoBuildManager {
                                 views: [],
                                 css: [],
                                 js: [],
+                                media: [],
                                 images: []
                             };
                             this.pluginsList.push(currentPlugin);
@@ -373,6 +382,7 @@ class AutoBuildManager {
             await this.loadPluginsFilesList('Views', 'views');
             await this.loadPluginsFilesList('public/css', 'css');
             await this.loadPluginsFilesList('public/js', 'js');
+            await this.loadPluginsFilesList('public/media/', 'media');
             await this.loadPluginsFilesList('public/images', 'images');
             resolve();
         });
@@ -399,9 +409,11 @@ class AutoBuildManager {
      * @param {*} list
      */
     async readFolderForList(plugin, folder, list) {
+        console.log(folder);
         return new Promise((resolve, reject) => {
             fs.readdir(folder, (err, files) => {
                 if (files) {
+                    console.table(files);
                     try {
                         files.forEach(file => {
                             if (file != '.gitkeep') {
@@ -518,6 +530,58 @@ class AutoBuildManager {
         return false;
     }
 
+
+    /**
+     * MEDIA UPDATE
+     */
+     async pluginMedia() {
+        return new Promise(async (resolve, reject) => {
+            if (this.pluginsList.length) {
+                // check if there aren't css filename duplicate
+                if (this.checkForDuplicateInArray(this.pluginsList.media)) {
+                    console.error('Error: there is a duplicate in the plugin(s) media filenames')
+                    return reject();
+                }
+                // copy css files into the plugins folder in classroom folder
+                await this.copyMediaFilesToClassroom();
+                // add the css links into the head in the header.html file in the temporary views folder
+                //await this.addCssLinksInHead();
+                resolve();
+            } else {
+                resolve();
+            }
+        });
+    }
+
+
+    /**
+     * Copy all the media files in the plugins folder to the css folder in the plugins folder which is in classroom folder
+     */
+    copyMediaFilesToClassroom() {
+        return new Promise((resolve, reject) => {
+            let promises = [];
+            this.pluginsList.forEach((plugin) => {
+                plugin.media.forEach((mediaFile) => {
+                    promises.push(
+                        new Promise((resolve, reject) => {
+                            gulp.src(`${this.pluginFolder}/${plugin.name}/public/media/${mediaFile}`).pipe(gulp.dest(`${this.pluginsFolderInClassroom}/media/${plugin.name}/`)).on('finish', () => {
+                                resolve();
+                            });
+                        })
+                    );
+                });
+            });
+            Promise.all(promises).then(() => {
+                resolve();
+            });
+        });
+    }
+
+    
+    /**
+     * MEDIA UPDATE
+     */
+
     /**
      * Concatenate all the view files in the temp-views folder
      */
@@ -532,6 +596,7 @@ class AutoBuildManager {
                 'gulp/temp-views/home_topbar.html',
                 'gulp/temp-views/studentProfilePanel.html',
                 'gulp/temp-views/studentHelpPanel.html',
+                'gulp/temp-views/studentCoursePanel.html',
                 'gulp/temp-views/sandboxPanel.html',
                 'gulp/temp-views/studentActivitiesPanel.html',
                 'gulp/temp-views/teacherProfilePanel.html',
@@ -546,6 +611,9 @@ class AutoBuildManager {
                 'gulp/temp-views/managerAppsPanel.html',
                 'gulp/temp-views/managerUsersPanel.html',
                 'gulp/temp-views/newExercicesPanel.html',
+                'gulp/temp-views/appsMediaGalery.html',
+                'gulp/temp-views/customAppsPanel.html',
+                'gulp/temp-views/teacherCoursePanel.html',
                 'gulp/temp-views/idePanel.html',
                 'gulp/temp-views/home_footer.html',
 
@@ -562,6 +630,7 @@ class AutoBuildManager {
                 'classroom/Views/home_topbar.html',
                 'classroom/Views/studentProfilePanel.html',
                 'classroom/Views/studentHelpPanel.html',
+                'classroom/Views/studentCoursePanel.html',
                 'classroom/Views/sandboxPanel.html',
                 'classroom/Views/studentActivitiesPanel.html',
                 'classroom/Views/teacherProfilePanel.html',
@@ -576,6 +645,9 @@ class AutoBuildManager {
                 'classroom/Views/managerAppsPanel.html',
                 'classroom/Views/managerUsersPanel.html',
                 'classroom/Views/newExercicesPanel.html',
+                'classroom/Views/appsMediaGalery.html',
+                'classroom/Views/customAppsPanel.html',
+                'classroom/Views/teacherCoursePanel.html',
                 'classroom/Views/idePanel.html',
                 'classroom/Views/home_footer.html',
 
@@ -651,6 +723,9 @@ pluginCss.displayName = 'plugin css';
 const pluginJs = () => { return autoBuildManager.pluginJs() };
 pluginJs.displayName = 'plugin js';
 
+const pluginMedia = () => { return autoBuildManager.pluginMedia() };
+pluginMedia.displayName = 'plugin media';
+
 const homeConcat = () => { return autoBuildManager.homeConcat() };
 homeConcat.displayName = 'home concat';
 
@@ -668,6 +743,7 @@ autoBuild = gulp.series(
     pluginImages,
     pluginCss,
     pluginJs,
+    pluginMedia,
     homeConcat,
     removeTemporaryViewsFolder,
     manageCustomBuild

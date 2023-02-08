@@ -1,7 +1,7 @@
 /**
  * Setup the rich text editor for the activities
  */
- function setTextArea() {
+function setTextArea() {
     const options = Main.getClassroomManager().wbbOpt;
     // Free 
     $('#free-enonce').wysibb(options);
@@ -24,8 +24,18 @@
 }
 
 // autocorrect modification pas pris en compte
-function launchCustomActivity(activityType, isUpdate = false, callback = false) {
 
+function LtiDefaultCode(activityType, isUpdate) {
+    document.getElementById('content-forward-button').style.display = 'none';
+    $("#activity-custom").show();
+    if (isUpdate) {
+        launchLtiDeepLinkCreate(activityType, isUpdate);
+    } else {
+        launchLtiDeepLinkCreate(activityType);
+    }
+}
+
+function launchCustomActivity(activityType, isUpdate = false, callback = false) {
     setTextArea();
 
     const contentForwardButtonElt = document.getElementById('content-forward-button');
@@ -41,39 +51,29 @@ function launchCustomActivity(activityType, isUpdate = false, callback = false) 
 
     Main.getClassroomManager().isActivitiesRestricted(null, activityType).then((response) => {
         if (response.Limited == false && activityType != "appOutDated") {
-            switch(activityType) {
-                case 'free':
-                    $("#activity-free").show();
-                    break;
-                case 'quiz':
-                    $("#activity-quiz").show();
-                    break;
-                case 'fillIn':
-                    $("#activity-fill-in").show();
-                    break;
-                case 'reading':
-                    $("#activity-reading").show();
-                    break;
-                case 'dragAndDrop':
-                    $("#activity-drag-and-drop").show();
-                    break;
-                case 'custom':
-                    // Use the previous method for the activity without title
-                    $("#activity-reading").show();
-                    break;
-                default:
-                    // Check if it's an lti apps and get the data needed if it's the case
-                    contentForwardButtonElt.style.display = 'none';
-                    $("#activity-custom").show();
-                    if (isUpdate) {
-                        launchLtiDeepLinkCreate(activityType, isUpdate);
+            const funct = customActivity.activityAndCaseView.filter(activityValidate => activityValidate[0] == activityType)[0];
+            if (funct) {
+                if (typeof funct[1] != 'function') {
+                    navigatePanel('classroom-dashboard-classes-new-activity', 'dashboard-activities-teacher');
+                    $(funct[1]).show();
+                } else {
+                    if (funct[3] != false) {
+                        funct[1](funct[0], funct[3]);
                     } else {
-                        launchLtiDeepLinkCreate(activityType);
+                        funct[1](funct[0]);
                     }
-                    
-                    break;
+                }
+            } else {
+                navigatePanel('classroom-dashboard-classes-new-activity', 'dashboard-activities-teacher');
+                $("#activity-custom").show();
+                LtiDefaultCode(activityType, isUpdate);
             }
-            navigatePanel('classroom-dashboard-classes-new-activity', 'dashboard-activities-teacher');
+
+            if (funct) {
+                if (funct[2]) {
+                    navigatePanel('classroom-dashboard-classes-new-activity', 'dashboard-activities-teacher');
+                }
+            }
             if (callback) callback();
         } else {
             if (activityType == "appOutDated") {
@@ -98,6 +98,7 @@ function contentBackward() {
     })
 }
 
+
 // Get the content
 function contentForward() {
     
@@ -119,12 +120,17 @@ function contentForward() {
         }
     } else if (Main.getClassroomManager()._createActivity.id == 'fillIn') {
         // Manage fill in fields
-        isCheckPassed = parseFillInFieldsAndSaveThem();
+        isCheckPassed = fillInManager.parseFillInFieldsAndSaveThem();
     } else if (Main.getClassroomManager()._createActivity.id == 'quiz') {
         // Manage quiz fields
-        isCheckPassed = parseQuizFieldsAndSaveThem();
+        isCheckPassed = quizManager.parseQuizFieldsAndSaveThem();
     } else if (Main.getClassroomManager()._createActivity.id == 'dragAndDrop') {
-        isCheckPassed = parseDragAndDropFieldsAndSaveThem();
+        isCheckPassed = dragAndDropManager.parseDragAndDropFieldsAndSaveThem();
+    } else {
+        const funct = customActivity.ContentForwardCustom.filter(contentForwardCheck => contentForwardCheck[0] == Main.getClassroomManager()._createActivity.id)[0];
+        if (funct) {
+            isCheckPassed = funct[1]();
+        }
     }
     // Check if the content if empty
     if (Main.getClassroomManager()._createActivity.content.description == '' && !isCheckPassed) { 
@@ -132,6 +138,26 @@ function contentForward() {
     } else {
         navigatePanel('classroom-dashboard-classes-new-activity-title', 'dashboard-proactivities-teacher');
         ActivityPreviewBeforeCreation(Main.getClassroomManager()._createActivity.id);
+    }
+}
+
+function parseFreeFieldsAndSaveThem() {
+    Main.getClassroomManager()._createActivity.content.description = $('#free-content').bbcode();
+    Main.getClassroomManager()._createActivity.solution = $('#free-correction').bbcode();
+    Main.getClassroomManager()._createActivity.autocorrect = $('#free-autocorrect').is(":checked");
+    Main.getClassroomManager()._createActivity.tolerance = $('#free-tolerance').val();
+    return true;
+}
+
+function parseReadingFieldsAndSaveThem() {
+    if ($('#reading-content').bbcode() == "" && $('#reading-content').htmlcode() == "") {
+        return false;
+    } else {
+        if ($('#reading-content').bbcode() != "") {
+            Main.getClassroomManager()._createActivity.content.description = $('#reading-content').bbcode();
+        } else if ($('#reading-content').htmlcode() != "") {
+            Main.getClassroomManager()._createActivity.content.description = $('#reading-content').htmlcode();
+        }
     }
 }
 
@@ -175,6 +201,7 @@ function titleBackward() {
                 } else {
                     displayNotification('#notif-div', "manager.account.errorSending", "error");
                 }
+                $('#activity-title-forward').attr('disabled', false);
             });
         } else if (Main.getClassroomManager()._createActivity.function == "update") {
             Main.getClassroomManager().updateActivity(ClassroomSettings.activity, title, type, content, solution, tolerance, autocorrect).then((response) => {
@@ -185,10 +212,10 @@ function titleBackward() {
                 } else {
                     displayNotification('#notif-div', "manager.account.errorSending", "error");
                 }
+                $('#activity-title-forward').attr('disabled', false);
             });
         }
     }
-    $('#activity-title-forward').attr('disabled', false);
     document.querySelector('#preview-activity-content').innerHTML = '';
 }
 
@@ -197,44 +224,18 @@ function titleBackward() {
  * Validation pipeline for the new activity
  */
 function validateActivity(correction) {
-    switch(Activity.activity.type) {
-        case 'free':
-            freeValidateActivity(correction);
-            break;
-        case 'quiz':
-            quizValidateActivity(correction);
-            break;
-        case 'fillIn':
-            fillInValidateActivity(correction);
-            break;
-        case 'reading':
-        case 'custom':
-            defaultProcessValidateActivity();
-            break;
-        case 'dragAndDrop':
-            dragAndDropValidateActivity(correction);
-            break;
-        default:
-            defaultProcessValidateActivity();
-            break;
+    // filter activityAndCase to get the right function
+    // CustomActivity = Manager for the custom activity
+    const funct = customActivity.activityAndCase.filter(activityValidate => activityValidate[0] == Activity.activity.type)[0];
+    if (funct) {
+        funct[1](funct[2] ? correction : null);
+    } else {
+        defaultProcessValidateActivity(correction);
     }
 }
 
-/**
- * Default process for the validation of the free activity
- */
-function freeValidateActivity(correction = 1) {
-    let studentResponse = $('#activity-input').bbcode();
-    Main.getClassroomManager().saveNewStudentActivity(Activity.activity.id, correction, null, studentResponse, Activity.id).then((response) => {
-        responseManager(response, 'free');
-    });
-}
 
-
-// todo
 function validateDefaultResponseManagement(response) {
-
-    
     $("#activity-validate").attr("disabled", false);
     if (response.note != null && response.correction > 1) {
         if (response.note == 3) {
@@ -247,47 +248,6 @@ function validateDefaultResponseManagement(response) {
     }
 }
 
-function quizValidateActivity(correction = 1) {
-
-    let studentResponse = [];
-    for (let i = 1; i < $(`input[id^="student-quiz-checkbox-"]`).length+1; i++) {
-        let res = {
-            inputVal: $(`#student-quiz-suggestion-${i}`).text(),
-            isCorrect: $(`#student-quiz-checkbox-${i}`).is(':checked')
-        }
-        studentResponse.push(res);
-    }
-    
-    Main.getClassroomManager().saveNewStudentActivity(Activity.activity.id, correction, null, JSON.stringify(studentResponse), Activity.id).then((response) => {
-        responseManager(response, 'quiz');
-    });
-}
-
-function fillInValidateActivity(correction = 1) {
-    let studentResponse = [];
-    for (let i = 1; i < $(`input[id^="student-fill-in-field-"]`).length+1; i++) {
-        let string = document.getElementById(`student-fill-in-field-${i}`).value;
-        studentResponse.push(string);
-    }
-    Main.getClassroomManager().saveNewStudentActivity(Activity.activity.id, correction, null, JSON.stringify(studentResponse), Activity.id).then((response) => {
-        responseManager(response, 'fill-in');
-    });
-}
-
-
-function dragAndDropValidateActivity(correction = 1) {
-    let studentResponse = [];
-    for (let i = 0; i < $(`span[id^="dz-"]`).length; i++) {
-        let string = document.getElementById(`dz-${i}`).children.length > 0 ? document.getElementById(`dz-${i}`).children[0].innerHTML : "";
-        studentResponse.push({
-            string: string
-        });
-    }
-    Main.getClassroomManager().saveNewStudentActivity(Activity.activity.id, correction, null, JSON.stringify(studentResponse), Activity.id).then((response) => {
-        responseManager(response, 'drag-and-drop');
-    });
-}
-
 function responseManager(response = null, type = null) {
     if (response) {
         if (response.hasOwnProperty("message")) {
@@ -297,7 +257,7 @@ function responseManager(response = null, type = null) {
                 displayNotification('#notif-div', "classroom.activities.emptyAnswer", "error");
             }
         } else if (response.hasOwnProperty("badResponse")) {
-            saveActivitiesResponseManager(type, response);
+            saveActivitiesAndCoursesResponseManager(type, response, false);
         } else {
             validateDefaultResponseManagement(response);
         }
@@ -305,64 +265,6 @@ function responseManager(response = null, type = null) {
         displayNotification('#notif-div', "classroom.notif.errorSending", "error");
     }
 }
-
-function saveActivitiesResponseManager(activityType = null, response = null) {
-    if (activityType == 'fill-in') {
-        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
-        if (response.hasOwnProperty("hint")) {
-            if (response.hint != null && response.hint != "") {
-                $("#activity-hint-container").show();
-                $("#activity-hint").text(response.hint);
-            }
-        }
-
-        let lengthResponse = $(`input[id^="student-fill-in-field-"]`).length;
-        for (let i = 1; i < lengthResponse+1; i++) {
-            if (response.badResponse.includes(i-1)) {
-                $(`#student-fill-in-field-${i}`).css("border","2px solid var(--correction-0)");
-            } else {
-                $(`#student-fill-in-field-${i}`).css("border","2px solid var(--correction-3)");
-            }
-        }
-    } else if (activityType == 'drag-and-drop') {
-        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
-        for (let i = 0; i < $(`span[id^="dz-"]`).length; i++) {
-            $('#dz-' + i).css("border","1px solid var(--correction-3)");
-        }
-
-        for (let i = 0; i < response.badResponse.length; i++) {
-            $('#dz-' + (response.badResponse[i])).css("border","1px solid var(--correction-0)");
-        }
-
-        if (response.hasOwnProperty("hint")) {
-            if (response.hint != null && response.hint != "") {
-                $("#activity-hint-container").show();
-                $("#activity-hint").text(response.hint);
-            }
-        }
-    } else if (activityType == 'quiz') {
-        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
-        for (let i = 1; i < $(`input[id^="student-quiz-suggestion-"]`).length+1; i++) {
-            $('#student-quiz-suggestion-' + i).parent().addClass('quiz-answer-correct');
-        }
-
-        for (let i = 0; i < response.badResponse.length; i++) {
-            $('#student-quiz-suggestion-' + (response.badResponse[i]+1)).parent().addClass('quiz-answer-incorrect');
-        }
-
-        if (response.hasOwnProperty("hint")) {
-            if (response.hint != null && response.hint != "") {
-                $("#activity-hint-container").show();
-                $("#activity-hint").text(response.hint);
-            }
-        }
-    } else if (activityType == 'free') {
-        displayNotification('#notif-div', "classroom.activities.wrongAnswer", "error");
-    }
-}
-
-
-
 
 function activitiesCreation(apps) {
 
@@ -378,7 +280,6 @@ function activitiesCreation(apps) {
         let outDated = false;
         if (app.hasOwnProperty("outDated")) {
             outDated = app.outDated;
-            console.log(app.name)
         }
 
         let nameField = "";
@@ -387,7 +288,8 @@ function activitiesCreation(apps) {
         } else if (i18next.t(app.name) != app.name) {
             nameField = `<h3 class="app-card-title mt-2" data-i18n="${app.name}"></h3>`;
         } else {
-            nameField = `<h3 class="app-card-title mt-2">${app.name}</h3>`;
+            let appName = app.name.replaceAll("-", " ");
+            nameField = `<h3 class="app-card-title mt-2">${appName}</h3>`;
         }
 
         let descriptionField = "";
@@ -446,209 +348,26 @@ function goBackToActivities() {
 /**
  * Fill in activity
  */
-
-$('#fill-in-add-inputs').click(() => {
-    if ($("#fill-in-content").getSelectText() != "") {
-        $('#fill-in-content').bbcode();
-        replaceSelectionWithHtml(`<span class="lms-answer">${$("#fill-in-content").getSelectText()}</span>\&nbsp`)
-        let newText = $('#fill-in-content').htmlcode();
-        $('#fill-in-content').htmlcode(newText);
-    } else {
-        $('#fill-in-content').bbcode();
-        $('#fill-in-content').htmlcode($('#fill-in-content').htmlcode() + `\&nbsp;<span class="lms-answer">\&nbsp;réponse\&nbsp;</span>\&nbsp`);
+ $.fn.selectRange = function(start, end) {
+    if(end === undefined) {
+        end = start;
     }
-});
-
-
-function parseFillInFieldsAndSaveThem() {
-    
-    if ($('#fill-in-content').bbcode().match(/\[answer\](.*?)\[\/answer\]/gi) == null) {
-        displayNotification('#notif-div', "classroom.notif.noAnswerInActivity", "error");
-        return false;
-    }
-
-    Main.getClassroomManager()._createActivity.content.fillInFields.contentForTeacher = $('#fill-in-content').bbcode();
-
-    let response = $('#fill-in-content').bbcode().match(/\[answer\](.*?)\[\/answer\]/gi).map(match => match.replace(/\[answer\](.*?)\[\/answer\]/gi, "$1"));
-
-    let contentForStudent = $('#fill-in-content').bbcode();
-    response.forEach((e, i) => {
-        contentForStudent = contentForStudent.replace(`[answer]${e}[/answer]`, `﻿`);
-        if (e.includes('&&')) {
-            response[i] = e.split('&&').map(e => e.trim()).join(',');
+    return this.each(function() {
+        if('selectionStart' in this) {
+            this.selectionStart = start;
+            this.selectionEnd = end;
+        } else if(this.setSelectionRange) {
+            this.setSelectionRange(start, end);
+        } else if(this.createTextRange) {
+            var range = this.createTextRange();
+            range.collapse(true);
+            range.moveEnd('character', end);
+            range.moveStart('character', start);
+            range.select();
         }
-    })
+    });
+};
 
-    for (let index = 0; index < response.length; index++) {
-        response[index] = response[index].trim();
-    }
-
-    if ($('#fill-in-states').bbcode() != '') {
-        Main.getClassroomManager()._createActivity.content.states = $('#fill-in-states').bbcode();
-    } else {
-        return false;
-    }
-
-    Main.getClassroomManager()._createActivity.tolerance = $('#fill-in-tolerance').val();
-    Main.getClassroomManager()._createActivity.autocorrect = $('#fill-in-autocorrect').is(":checked");
-    Main.getClassroomManager()._createActivity.content.hint = $('#fill-in-hint').val();
-
-
-    Main.getClassroomManager()._createActivity.solution = response;
-    Main.getClassroomManager()._createActivity.content.fillInFields.contentForStudent = contentForStudent;
-
-    if (Main.getClassroomManager()._createActivity.content.fillInFields.contentForTeacher == "") {
-        return false
-    }
-    return true;
-}
-
-$('#dragAndDrop-add-inputs').click(() => {
-    if ($("#drag-and-drop-content").getSelectText() != "") {
-        $('#drag-and-drop-content').bbcode();
-        replaceSelectionWithHtml(`<span class="lms-answer">${$("#drag-and-drop-content").getSelectText()}</span>\&nbsp`);
-        let newText = $('#drag-and-drop-content').htmlcode();
-        $('#drag-and-drop-content').htmlcode(newText);
-    } else {
-        $('#drag-and-drop-content').bbcode()
-        $('#drag-and-drop-content').htmlcode($('#drag-and-drop-content').htmlcode() + `\&nbsp;<span class="lms-answer">\&nbsp;réponse\&nbsp;</span>\&nbsp;`);
-    }
-});
-
-
-function parseDragAndDropFieldsAndSaveThem() {
-
-    if ($('#drag-and-drop-content').bbcode().match(/\[answer\](.*?)\[\/answer\]/gi) == null) {
-        displayNotification('#notif-div', "classroom.notif.noAnswerInActivity", "error");
-        return false;
-    }
-    
-    Main.getClassroomManager()._createActivity.content.dragAndDropFields.contentForTeacher = $('#drag-and-drop-content').bbcode();
-    
-    let responseDD = $('#drag-and-drop-content').bbcode().match(/\[answer\](.*?)\[\/answer\]/gi).map(match => match.replace(/\[answer\](.*?)\[\/answer\]/gi, "$1"));
-    let contentForStudent = $('#drag-and-drop-content').bbcode();
-
-
-    responseDD.forEach((e, i) => {
-        contentForStudent = contentForStudent.replace(`[answer]${e}[/answer]`, `﻿`);
-        responseDD[i] = e.trim();
-        if (e.includes('&&')) {
-            responseDD[i] = e.split('&&').map(e => e.trim()).join(',');
-        }
-    })
-
-    if ($('#drag-and-drop-states').bbcode() != '') {
-        Main.getClassroomManager()._createActivity.content.states = $('#drag-and-drop-states').bbcode();
-    } else {
-        return false;
-    }
-
-    Main.getClassroomManager()._createActivity.autocorrect = $('#drag-and-drop-autocorrect').is(":checked");
-    Main.getClassroomManager()._createActivity.content.hint = $('#drag-and-drop-hint').val();
-
-
-    Main.getClassroomManager()._createActivity.solution = responseDD;
-    Main.getClassroomManager()._createActivity.content.dragAndDropFields.contentForStudent = contentForStudent;
-
-    if (Main.getClassroomManager()._createActivity.content.dragAndDropFields.contentForTeacher == "") {
-        return false;
-    }
-    return true;
-}
-
-
-function addQuizSuggestion() {
-    let i = 0;
-    
-    do {
-        i++;
-    } while ($(`#quiz-suggestion-${i}`).length > 0);
-
-    let divToAdd = `<div class="form-group c-primary-form" id="quiz-group-${i}">
-                        <label for="quiz-suggestion-${i}" id="quiz-label-suggestion-${i}">Proposition ${i}</label>
-                        <button class="btn c-btn-grey mx-2" data-i18n="newActivities.delete" id="quiz-button-suggestion-${i}" onclick="deleteQuizSuggestion(${i})">Delete</button>
-
-                        <div class="input-group mt-3">
-                            <input type="text" id="quiz-suggestion-${i}" class="form-control">
-                            <div class="input-group-append">
-                                <div class="input-group-text c-checkbox c-checkbox-grey">
-                                    <input class="form-check-input" type="checkbox" id="quiz-checkbox-${i}">
-                                    <label class="form-check-label" for="quiz-checkbox-${i}" id="label-quiz-${i}" data-i18n="classroom.activities.correctAnswer">Réponse correcte</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-              
-    $('#quiz-suggestions-container').append(divToAdd);
-    $(`#quiz-button-suggestion-${i}`).localize();
-    $(`#label-quiz-${i}`).localize();
-}
-
-function parseQuizFieldsAndSaveThem() {
-    // check empty fields
-    let emptyFields = checkEmptyQuizFields();
-    let checkBox = checkQuizCheckbox();
-    if (emptyFields) { 
-        displayNotification('error', 'newActivities.emptyFields');
-        return false;
-    } else if (!checkBox) {
-        displayNotification('error', 'newActivities.checkBox');
-        return false;
-    } else {
-        let tempArraySolution = []; 
-        let tempArraycontentForStudent = []; 
-        for (let i = 1; i < $(`input[id^="quiz-suggestion-"]`).length+1; i++) {
-            let res = {
-                inputVal: $(`#quiz-suggestion-${i}`).val(),
-                isCorrect: $(`#quiz-checkbox-${i}`).is(':checked')
-            }
-            let student = {
-                inputVal: $(`#quiz-suggestion-${i}`).val()
-            }
-            tempArraySolution.push(res);
-            tempArraycontentForStudent.push(student);
-        }
-
-        Main.getClassroomManager()._createActivity.content.quiz.contentForStudent = tempArraycontentForStudent;
-        Main.getClassroomManager()._createActivity.solution = tempArraySolution;
-        
-        Main.getClassroomManager()._createActivity.content.hint = $('#quiz-hint').val();
-        Main.getClassroomManager()._createActivity.autocorrect = $('#quiz-autocorrect').is(":checked");
-        
-        if ($('#quiz-states').bbcode() != '') {
-            Main.getClassroomManager()._createActivity.content.states = $('#quiz-states').bbcode();
-        } else {
-            return false;
-        }
-        return true;
-    }
-}
-
-function checkEmptyQuizFields() {
-    let empty = false;
-    for (let i = 1; i < $(`input[id^="quiz-suggestion-"]`).length+1; i++) {
-        if ($(`#quiz-suggestion-${i}`).val() == '') {
-            empty = true;
-        }
-    }
-    return empty;
-}
-
-// check if at least one checkbox is checked
-function checkQuizCheckbox() {
-    let checkboxes = $(`input[id^="quiz-checkbox-"]`);
-    let checked = false;
-    for (let i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].checked) {
-            checked = true;
-        }
-    }
-    return checked;
-}
-
-function deleteQuizSuggestion(number) {
-    $(`#quiz-group-${number}`).remove();
-}
 
 /**
  * Meilleur clean de contenu lors de la modification d'une activité
@@ -674,8 +393,9 @@ function launchLtiDeepLinkCreate(type, isUpdate) {
     document.forms["contentitem_request_form"].submit();
 }
 
-function launchLtiResource(activityId, activityType, activityContent, isStudentLaunch = false, studentResourceUrl = false, activityContentId = "#activity-content") {
-    document.querySelector(activityContentId).innerHTML = 
+function launchLtiResource(activityId, activityType, activityContent, isStudentLaunch = false, studentResourceUrl = false, activityContentId = "#activity-content", isFromCourse = false) {
+    let course = isFromCourse ? "-course" : "";
+    document.querySelector(activityContentId + course).innerHTML = 
         `<input id="activity-score" type="text" hidden/>
         <form name="resource_launch_form" action="${_PATH}lti/ltilaunch.php" method="post" target="lti_student_iframe">
             <input type="hidden" id="application_type" name="application_type" value="${activityType}">
@@ -688,41 +408,8 @@ function launchLtiResource(activityId, activityType, activityContent, isStudentL
         height: 60vh;" allowfullscreen></iframe>
         `;
     document.forms["resource_launch_form"].submit();
-    $("#activity-content-container").show();
+    $("#activity-content-container"+course).show();
 }
-
-
-$('body').on('click', '#free-tolerance-increase', function () {
-    let tolerance = parseInt($('#free-tolerance').val());
-    if (!isNaN(tolerance)) {
-        $(`#free-tolerance`).val(tolerance+1);
-    } else {
-        $(`#free-tolerance`).val(1);
-    }
-})
-
-$('body').on('click', '#free-tolerance-decrease', function () {
-    let tolerance = parseInt($('#free-tolerance').val());
-    if (tolerance > 0) {
-        $(`#free-tolerance`).val(tolerance-1);
-    }
-})
-
-$('body').on('click', '#fill-in-tolerance-increase', function () {
-    let tolerance = parseInt($('#fill-in-tolerance').val());
-    if (!isNaN(tolerance)) {
-        $(`#fill-in-tolerance`).val(tolerance+1);
-    } else {
-        $(`#fill-in-tolerance`).val(1);
-    }
-})
-
-$('body').on('click', '#fill-in-tolerance-decrease', function () {
-    let tolerance = parseInt($('#fill-in-tolerance').val());
-    if (tolerance > 0) {
-        $(`#fill-in-tolerance`).val(tolerance-1);
-    }
-})
 
 
 function ActivityPreviewBeforeCreation(type) {
@@ -730,100 +417,33 @@ function ActivityPreviewBeforeCreation(type) {
     $('#activity-preview-div').hide();
 
     const $title = $('#preview-title'),
-        $states = $('#preview-states'),
         $statesText = $('#preview-activity-states'),
-        $content = $('#preview-content'),
-        $contentText = $('#preview-activity-content'),
-        $bbcodeContent = $('#preview-content-bbcode'),
-        $dragAndDrop = $('#preview-activity-drag-and-drop-container'),
-        $contentbbcode = $('#preview-activity-bbcode-content'),
-        ActivityPreview = Main.getClassroomManager()._createActivity,
-        wbbptions = Main.getClassroomManager().wbbOpt;
+        ActivityPreview = Main.getClassroomManager()._createActivity;
 
     resetPreviewViews();
-
     
     $title.html(Main.getClassroomManager()._createActivity.title);
     $statesText.html(bbcodeToHtml(Main.getClassroomManager()._createActivity.content.states));
     $title.show();
 
-    switch (type) {
-        case "quiz":
-            console.log()
-            $contentText.html(createContentForQuiz(ActivityPreview.content.quiz.contentForStudent, true, false, true));
-            $states.show();
-            $content.show();
-            $('#activity-preview-div').show();
-            break;
-        case "free":
-            $statesText.html(bbcodeToHtml(Main.getClassroomManager()._createActivity.content.description))
-            $contentbbcode.wysibb(wbbptions);
-            $bbcodeContent.show();
-            $states.show();
-            $('#activity-preview-div').show();
-            break;
-        case "fillIn":
-            let studentContent = bbcodeToHtml(ActivityPreview.content.fillInFields.contentForStudent)
-            let nbOccu = studentContent.match(/﻿/g).length;
-            for (let i = 1; i < nbOccu+1; i++) {
-                studentContent = studentContent.replace(`﻿`, `<input type="text" id="student-fill-in-field-${i}-preview" class="answer-student">`);
-            }
-            $contentText.html(studentContent);
-            $states.show();
-            $content.show();
-            $('#activity-preview-div').show();
-            break;
-        case "reading":
-            $contentText.html(bbcodeToHtml(ActivityPreview.content.description));
-            $content.show();
-            $('#activity-preview-div').show();
-            break;
-        case "dragAndDrop":
-            let ContentString = manageDragAndDropText(ActivityPreview.content.dragAndDropFields.contentForStudent, true);
-            $('#preview-drag-and-drop-text').html(`<div>${ContentString}</div>`);
-
-            // Get the response array and shuffle it
-            let choices = shuffleArray(ActivityPreview.solution);
-            
-            choices.forEach(e => {
-                $('#preview-drag-and-drop-fields').append(`<p class="draggable draggable-items drag-drop" id="${e}">${e.trim()}</p>`);
-            });
-        
-            // init dragula if it's not already initialized
-            if (Main.getClassroomManager().dragulaGlobal == false) {
-                Main.getClassroomManager().dragulaGlobal = dragula();
-            }
-
-            // Reset the dragula fields
-            Main.getClassroomManager().dragulaGlobal.containers = [];
-            
-            Main.getClassroomManager().dragulaGlobal = dragula([document.querySelector('#preview-drag-and-drop-fields')]).on('drop', function(el, target, source) {
-                if (target.id != 'preview-drag-and-drop-fields') {
-                    let swap = $(target).find('p').not(el);
-                    swap.length > 0 ? source.append(swap[0]) : null;
-                }
-            });
-
-            $('.dropzone-preview').each((i, e) => {
-                Main.getClassroomManager().dragulaGlobal.containers.push(document.querySelector('#'+e.id));
-            });
-
-            $states.show();
-            $dragAndDrop.show();
-            $('#activity-preview-div').show();
-            break;
-        case "custom":
-            $contentText.html(bbcodeToHtml(ActivityPreview.content.description));
-            $content.show();
-            $('#activity-preview-div').show();
-            break;
-        case "lti-vittascience":
-            launchLtiResource("0000", "lti-vittascience", ActivityPreview.content.description, false, false, "#preview-activity-content");
-            $content.show();
-            $('#activity-preview-div').show();
-            break;
-        default:
-            break;
+    let func = customActivity.managePreviewCustom.filter(activityPreview => activityPreview[0] == type)[0];
+    if (func) {
+        func[1](ActivityPreview);
+    } else {
+        switch (type) {
+            case "custom":
+                $('#preview-activity-content').html(bbcodeToHtml(ActivityPreview.content.description));
+                $('#preview-content').show();
+                $('#activity-preview-div').show();
+                break;
+            case "vittascience":
+                launchLtiResource("0000", "vittascience", ActivityPreview.content.description, false, false, "#preview-activity-content");
+                $('#preview-content').show();
+                $('#activity-preview-div').show();
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -848,4 +468,150 @@ function resetPreviewViews() {
     ContentViews.forEach(e => {
         e.html('');
     });
+}
+
+
+
+function saveActivitiesAndCoursesResponseManager(activityType = null, response = null, isFromCourse = false) {
+    let courseIndicator = isFromCourse ? "-course" : "";
+
+    if (activityType == 'fill-in') {
+        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
+        
+        let lengthResponse = $(`input[id^="student-fill-in-field-"]`).length;
+        for (let i = 1; i < lengthResponse+1; i++) {
+            if (response.badResponse.includes(i-1)) {
+                $(`#student-fill-in-field-${i}`).css("border","2px solid var(--correction-0)");
+            } else {
+                $(`#student-fill-in-field-${i}`).css("border","2px solid var(--correction-3)");
+            }
+        }
+
+        hintManager(response, courseIndicator)
+    } else if (activityType == 'drag-and-drop') {
+        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
+        for (let i = 0; i < $(`span[id^="dz-"]`).length; i++) {
+            $('#dz-' + i).css("border","1px solid var(--correction-3)");
+        }
+
+        for (let i = 0; i < response.badResponse.length; i++) {
+            $('#dz-' + (response.badResponse[i])).css("border","1px solid var(--correction-0)");
+        }
+
+        hintManager(response, courseIndicator)
+    } else if (activityType == 'quiz') {
+        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
+        document.querySelectorAll('.quiz-answer-incorrect').forEach((element) => {
+            element.classList.remove('quiz-answer-incorrect');
+        });
+
+        for (let i = 1; i < $(`input[id^="student-quiz-suggestion-"]`).length+1; i++) {
+            $('#student-quiz-suggestion-' + i).parent().addClass('quiz-answer-correct');
+        }
+
+        for (let i = 0; i < response.badResponse.length; i++) {
+            $('#student-quiz-suggestion-' + (response.badResponse[i]+1)).parent().addClass('quiz-answer-incorrect');
+        }
+
+        hintManager(response, courseIndicator)
+    } else if (activityType == 'free') {
+        displayNotification('#notif-div', "classroom.activities.wrongAnswer", "error");
+    }
+}
+
+function hintManager(response, courseIndicator = "") {
+    if (response.hasOwnProperty("hint")) {
+        if (response.hint != null && response.hint != "") {
+            $(`#activity-hint-container${courseIndicator}`).show();
+            $(`#activity-hint${courseIndicator}`).text(response.hint);
+        }
+    }
+}
+
+/* Now include course to avoid duplicate */
+function defaultProcessValidateActivity(correction = null, isFromCourse = false) {
+    $("#activity-validate").attr("disabled", "disabled");
+
+    let getInterface = tryToParse(Activity.activity.content),
+        vittaIframeRegex = /\[iframe\].*?vittascience(|.com)\/([a-z0-9]{5,12})\/?/gm,
+        interfaceData = false;
+
+        
+    if (!getInterface) {
+        if (vittaIframeRegex.exec(Activity.activity.content) != null) {
+            interfaceData = vittaIframeRegex.exec(Activity.activity.content);
+        }
+    } else {
+        interfaceData = vittaIframeRegex.exec(JSON.parse(Activity.activity.content).description)
+    }
+
+    if (!interfaceData) {
+        let correction = 2
+        if (isFromCourse) {
+            Main.getClassroomManager().saveStudentActivity(false, false, Activity.id, correction, 4).then(function (activity) {
+                if (typeof activity.errors != 'undefined') {
+                    for (let error in activity.errors) {
+                        displayNotification('#notif-div', `classroom.notif.${error}`, "error");
+                        $("#activity-validate").attr("disabled", false);
+                    }
+                } else  {
+                    coursesManager.manageAllActivityResponse(activity);
+                }
+            })
+        } else {
+            Main.getClassroomManager().saveStudentActivity(false, false, Activity.id, correction, 4).then(function (activity) {
+                if (typeof activity.errors != 'undefined') {
+                    for (let error in activity.errors) {
+    
+                        displayNotification('#notif-div', `classroom.notif.${error}`, "error");
+                        $("#activity-validate").attr("disabled", false);
+                    }
+                } else  {
+                    navigatePanel('classroom-dashboard-activity-panel-success', 'dashboard-activities');
+                    actualizeStudentActivities(activity, correction);
+                    $("#activity-validate").attr("disabled", false);
+                }
+            })
+        }
+        window.localStorage.classroomActivity = null
+    } else if (Activity.autocorrection == false) {
+        let correction = 1;
+        const interfaceName = interfaceData[2];
+        let project = window.localStorage[interfaceName + 'CurrentProject']
+
+        
+        let projectParsed = tryToParse(project);
+        if (!projectParsed) {
+            projectParsed = null;
+        }
+
+        if (isFromCourse) {
+            Main.getClassroomManager().saveStudentActivity(projectParsed, interfaceName, Activity.id).then(function (activity) {
+                if (typeof activity.errors != 'undefined') {
+                    for (let error in activity.errors) {
+                        displayNotification('#notif-div', `classroom.notif.${error}`, "error");
+                        $("#activity-validate").attr("disabled", false);
+                    }
+                } else {
+                    coursesManager.manageAllActivityResponse(activity);
+                }
+            })
+        } else {
+            Main.getClassroomManager().saveStudentActivity(projectParsed, interfaceName, Activity.id).then(function (activity) {
+                if (typeof activity.errors != 'undefined') {
+                    for (let error in activity.errors) {
+                        displayNotification('#notif-div', `classroom.notif.${error}`, "error");
+                        $("#activity-validate").attr("disabled", false);
+                    }
+                } else {
+                    actualizeStudentActivities(activity, correction)
+                    $("#activity-validate").attr("disabled", false);
+                    navigatePanel('classroom-dashboard-activity-panel-correcting', 'dashboard-classes-teacher')
+                }
+            })
+        }
+    } else {
+        $("#activity-validate").attr("disabled", false);
+        window.localStorage.autocorrect = true
+    }
 }

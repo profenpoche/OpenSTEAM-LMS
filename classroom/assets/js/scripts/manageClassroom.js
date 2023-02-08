@@ -30,26 +30,32 @@ async function readEvent (event) {
                     break;
                 }
             }
-            // If the current activity needs a manual review, display the relevant panel
-            if (Activity.correction == 1) {
-                navigatePanel('classroom-dashboard-activity-panel-correcting', 'dashboard-activities');
-            } else {
-                // Otherwise display the relevant panel for success or fail
-                switch (Activity.note) {
-                    case 0:
-                        navigatePanel('classroom-dashboard-activity-panel-fail', 'dashboard-activities');
-                        break;
-                    case 3:
-                        navigatePanel('classroom-dashboard-activity-panel-success', 'dashboard-activities');
-                        break;
-                        
-                    default:
-                        navigatePanel('classroom-dashboard-activities-panel', 'dashboard-activities');
-                        break;
+
+
+            if (!Activity.isFromCourse) {
+                // If the current activity needs a manual review, display the relevant panel
+                if (Activity.correction == 1) {
+                    navigatePanel('classroom-dashboard-activity-panel-correcting', 'dashboard-activities');
+                } else {
+                    // Otherwise display the relevant panel for success or fail
+                    switch (Activity.note) {
+                        case 0:
+                            navigatePanel('classroom-dashboard-activity-panel-fail', 'dashboard-activities');
+                            break;
+                        case 3:
+                            navigatePanel('classroom-dashboard-activity-panel-success', 'dashboard-activities');
+                            break;
+                            
+                        default:
+                            navigatePanel('classroom-dashboard-activities-panel', 'dashboard-activities');
+                            break;
+                    }
                 }
+                // Clearing the LTI content div
+                document.querySelector('#lti-loader-container').innerHTML = '';
             }
-            // Clearing the LTI content div
-            document.querySelector('#lti-loader-container').innerHTML = '';
+
+           
             break;
         // Message received when an LTI deep link has returned
         case 'end-lti-deeplink':
@@ -148,22 +154,34 @@ $('body').on('click', '#update-pseudo-close', function () {
 //classroom modal-->supprimer
 $('body').on('click', '.modal-classroom-delete', function (e) {
     e.stopPropagation();
-    let confirm = window.confirm("Etes vous sur de vouloir supprimer la classe?")
-    if (confirm) {
-        ClassroomSettings.classroom = $(this).parent().parent().parent().attr('data-link')
-        Main.getClassroomManager().deleteClassroom(ClassroomSettings.classroom).then(function (classroom) {
-            // concatenate classroom name + group in GAR context, else set only classroom name
-            const classroomFullName = classroom.group != null 
-                                        ? `${classroom.name}-${classroom.group}`
-                                        : `${classroom.name}`
+    Main.getClassroomManager()._selectedClassroomToDelete = $(this).parent().parent().parent().attr('data-link');
+    $('#validation-delete-classroom').val("");
+    pseudoModal.openModal("delete-classroom");
+})
 
+function persistDeleteClassroom() {
+    let validation = $('#validation-delete-classroom').val(),
+        placeholderWord = $('#validation-delete-classroom').attr('placeholder');
+
+    if (validation == placeholderWord) {
+        Main.getClassroomManager().deleteClassroom(Main.getClassroomManager()._selectedClassroomToDelete).then(function (classroom) {
+            // concatenate classroom name + group in GAR context, else set only classroom name
+            const classroomFullName = classroom.group != null ? `${classroom.name}-${classroom.group}` : `${classroom.name}`;
             deleteClassroomInList(classroom.link);
             classroomsDisplay();
             displayNotification('#notif-div', "classroom.notif.classroomDeleted", "success", `'{"classroomName": "${classroomFullName}"}'`);
+            pseudoModal.closeAllModal();
         })
-        ClassroomSettings.classroom = null
+        ClassroomSettings.classroom = null;
+    } else {
+        displayNotification('#notif-div', "manager.input.writeDelete", "error");
     }
-})
+}
+
+function cancelDeleteClassroom() {
+    pseudoModal.closeAllModal();
+    Main.getClassroomManager()._selectedClassroomToDelete = null;
+}
 
 //classroom modal-->modifier
 $('body').on('click', '.modal-classroom-modify', function (e) {
@@ -328,6 +346,9 @@ document.querySelector('#classroom-update-form').addEventListener('submit', (e) 
 
 //add students to an existing classroom on the classroom dashboard
 $('body').on('click', '#add-student-to-classroom', function () {
+    // disable button to avoid multiple click
+    $('#add-student-to-classroom').prop('disabled', true);
+
     const studentName = document.querySelector('#classroom-dashboard-add-student-div .student-form-name').value;
     if (studentName != ''){
         let students = [studentName];
@@ -350,7 +371,7 @@ $('body').on('click', '#add-student-to-classroom', function () {
                 } else {
                     manageResponseOfAddUsers(response);
                 }
-            }else{
+            } else {
                 Main.getClassroomManager().getClasses(Main.getClassroomManager()).then(function () {
                     addUserAndGetDashboard(ClassroomSettings.classroom);
                     document.querySelector('#classroom-dashboard-add-student-div').innerHTML = BASE_STUDENT_FORM;
@@ -706,13 +727,12 @@ function reorderActivities(activities, indexes) {
     let orderedActivities = [];
     for(let i=0; i<indexes.length; i++){
         for(activity of activities){
-            if(activity.reference == indexes[i].reference){
+            if (activity.reference == indexes[i].reference) {
                 orderedActivities[i] = activity;
                 break;
-            }else{
+            } else {
                 orderedActivities[i] = false;
             }
-        
         };
     }
     return orderedActivities;
@@ -730,10 +750,11 @@ function listIndexesActivities(students) {
                 indexArraybis.push({
                     id: element.activity.id,
                     title: element.activity.title,
-                    reference: element.reference
+                    reference: element.reference,
+                    isFromCourse: element.isFromCourse,
+                    course: element.hasOwnProperty('course') ? element.course : null
                 })
                 ClassroomSettings.indexRef.push(element)
-
             }
         })
     });
@@ -890,6 +911,7 @@ function filterSandboxInList(keywords = [], orderBy = 'id', asc = true) {
  * @param {array} students - Array of students in a classroom
  */
 function displayStudentsInClassroom(students, link=false) {
+
     if (link && link != $_GET('option')) {
         return;
     }
@@ -908,7 +930,6 @@ function displayStudentsInClassroom(students, link=false) {
 
     // get the current classroom index of activities
     let arrayIndexesActivities = listIndexesActivities(students);
-    
     students.forEach(element => {
         // reorder the current student activities to fit to the classroom index of activities
         let arrayActivities = reorderActivities(element.activities, arrayIndexesActivities);
@@ -957,26 +978,62 @@ function displayStudentsInClassroom(students, link=false) {
         // Display the current student activities in the dashboard
 
         // Loop in the classroom activities index (with ids) to generate the dashboard table header and body
-        for(let i=0; i<arrayIndexesActivities.length; i++){
+        for (let i=0; i<arrayIndexesActivities.length; i++) {
             if (element.user.pseudo == demoStudentName) {
-                $('#header-table-teach').append(`
-                <th data-toggle="tooltip" data-placement="top" title="${ arrayIndexesActivities[i].title }">
-                    <div class="dropdown dropdown-act" style="width:30px;">
-                        <div id="dropdown-act-${activityNumber}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span class="span-act">Act.</br>n°${ activityNumber }</span>
-                            <i style="display:none;font-size:2em;" class="fa fa-cog i-act" aria-hidden="true"></i>
-                            <div class="dropdown-menu" aria-labelledby="dropdown-act-${activityNumber}" data-id="${arrayIndexesActivities[i].id}" style="text-transform: none;">
-                            <li class="ml-5" style="border-bottom:solid 2px black;">
-                                <b>${ arrayIndexesActivities[i].title }</b>
-                            </li>
-                            <li class="classroom-clickable col-12 dropdown-item " onclick="activityWatch(${arrayIndexesActivities[i].id})" ><i class="fas fa-eye"></i> <span data-i18n="classroom.classes.panel.seeActivity">Voir l'activité</span></li>
-                            <li class=" classroom-clickable col-12 dropdown-item" onclick="activityModify(${arrayIndexesActivities[i].id})"><i class="fas fa-pen"></i> <span data-i18n="classroom.classes.panel.editActivity">Modifier l'activité</span></li>
-                            <li class="classroom-clickable col-12 dropdown-item" onclick="attributeActivity(${arrayIndexesActivities[i].id},${arrayIndexesActivities[i].reference})"><i class="fas fa-user-alt"></i> <span data-i18n="classroom.classes.panel.editAttribution">Modifier l'attribution</span></li>
-                            <li class="dropdown-item classroom-clickable col-12" onclick="undoAttributeActivity(${arrayIndexesActivities[i].reference},'${arrayIndexesActivities[i].title}','${Main.getClassroomManager().getClassroomIdByLink(ClassroomSettings.classroom)}')"><i class="fas fa-trash-alt"></i> <span data-i18n="classroom.classes.panel.removeAttribution">Retirer l'attribution</span></li>
-                        </div>
-                    </div>
-                </th>`);
-                    activityNumber++
+                let fromCourse = false,
+                    firstFromCourse = false,
+                    courseLength = 0,
+                    courseId = null;
+
+                if (arrayIndexesActivities[i].isFromCourse) {
+                    fromCourse = true;
+                    if (arrayIndexesActivities[i].course != null) {
+                        courseId = arrayIndexesActivities[i].course.id;
+                    }
+                }
+  
+                let course = coursesManager.myCourses.find(course => course.id == courseId)
+                if (course != null) {
+                    courseLength = course.activities.length;
+                    if (course.activities[0].id == arrayIndexesActivities[i].id) {
+                        firstFromCourse = true;
+                    }
+                }
+
+                let tableLength = null;
+                if (firstFromCourse) {
+                    tableLength = `colspan="${courseLength}"`;
+                }
+
+                let thModular = "";
+                if (fromCourse && firstFromCourse) {
+                    thModular = `<th data-toggle="tooltip" class="border-header-class" ${tableLength} data-placement="top" title="Course">`;
+                } else if (!fromCourse) {
+                    thModular = `<th data-toggle="tooltip" class="border-header-class" data-placement="top" title="${arrayIndexesActivities[i].title}">`;
+                }
+
+                if (fromCourse && firstFromCourse || !fromCourse) {
+                    $('#header-table-teach').append(`
+                        ${thModular}
+                        ${!fromCourse ? `` : `<span class="span-act">Par.</br>n°${ activityNumber }</span>`}
+                        <div class="dropdown dropdown-act" style="width:30px;">
+                            <div id="dropdown-act-${activityNumber}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    ${!fromCourse ? `<span class="span-act">Act.</br>n°${ activityNumber }</span>` : ``}
+                                    <i style="display:none;font-size:2em;" class="fa fa-cog i-act" aria-hidden="true"></i>
+                                    <div class="dropdown-menu" aria-labelledby="dropdown-act-${activityNumber}" data-id="${arrayIndexesActivities[i].id}" style="text-transform: none;">
+                                    <li class="ml-5" style="border-bottom:solid 2px black;">
+                                        <b>${ arrayIndexesActivities[i].title }</b>
+                                    </li>
+                                    <li class="classroom-clickable col-12 dropdown-item " onclick="activityWatch(${arrayIndexesActivities[i].id})" ><i class="fas fa-eye"></i> <span data-i18n="classroom.classes.panel.seeActivity">Voir l'activité</span></li>
+                                    <li class=" classroom-clickable col-12 dropdown-item" onclick="activityModify(${arrayIndexesActivities[i].id})"><i class="fas fa-pen"></i> <span data-i18n="classroom.classes.panel.editActivity">Modifier l'activité</span></li>
+                                    <li class="classroom-clickable col-12 dropdown-item" onclick="attributeActivity(${arrayIndexesActivities[i].id},${arrayIndexesActivities[i].reference})"><i class="fas fa-user-alt"></i> <span data-i18n="classroom.classes.panel.editAttribution">Modifier l'attribution</span></li>
+                                    <li class="dropdown-item classroom-clickable col-12" onclick="undoAttributeActivity(${arrayIndexesActivities[i].reference},'${arrayIndexesActivities[i].title}','${Main.getClassroomManager().getClassroomIdByLink(ClassroomSettings.classroom)}')"><i class="fas fa-trash-alt"></i> <span data-i18n="classroom.classes.panel.removeAttribution">Retirer l'attribution</span></li>
+                                </div>
+                            </div>
+                        </th>`
+                    );
+                    activityNumber++;
+                }
             }
             // Display the current student activities in the dashboard
             let currentActivity = arrayActivities[i];
@@ -999,7 +1056,12 @@ function displayStudentsInClassroom(students, link=false) {
         $('[data-toggle="tooltip"]').tooltip()
     });
 
-    $('#body-table-teach').append('<button id="add-student-dashboard-panel" class="btn c-btn-primary"><span data-i18n="classroom.activities.addLearners">Ajouter des apprenants</span> <i class="fas fa-plus"></i></button>').localize();
+
+    function manageHeaderTableStudents() {
+
+    }
+
+    appendAddStudentButton()
     
     // get classroom settings from localstorage
     let settings = getClassroomDisplaySettings(link);
@@ -1042,6 +1104,10 @@ function displayStudentsInClassroom(students, link=false) {
         $(classroomTable).find('tr').removeClass('non-dropdown');
     });
 
+}
+
+function appendAddStudentButton(){
+    $('#body-table-teach').append('<button id="add-student-dashboard-panel" class="btn c-btn-primary"><span data-i18n="classroom.activities.addLearners">Ajouter des apprenants</span> <i class="fas fa-plus"></i></button>').localize();
 }
 
 $('body').on('click', '.switch-pwd', function (event) {
