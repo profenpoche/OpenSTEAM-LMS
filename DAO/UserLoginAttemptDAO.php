@@ -97,11 +97,8 @@ class UserLoginAttemptDAO
             ->exec(
                 "
                 DELETE FROM users_login_attempts
-                WHERE id IN (
-                    SELECT id 
-                    FROM users_login_attempts
-                    WHERE email = ?
-                )
+                WHERE email = ?
+
             ",
                 [$email]
             );

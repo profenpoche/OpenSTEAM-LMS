@@ -1,4 +1,6 @@
 <?php
+ini_set('session.cookie_path', '/');
+ini_set('session.cookie_domain', '.kidaia.com');
 session_start();
 require_once(__DIR__ . "/../vendor/autoload.php");
 
