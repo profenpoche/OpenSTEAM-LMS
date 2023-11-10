@@ -28,7 +28,7 @@
         </div>
     </nav>
 
-    <div class="container mb-2 part-content-index c-primary-form">
+    <div class="container mb-2 mx-auto part-content-index c-primary-form">
 
         <!-- Free activity part -->
         <div id="activity-free" style="display:none;">
@@ -37,12 +37,12 @@
                 <textarea id="free-content" style="height:340px"></textarea>
             </div>
            
-            <div class="c-checkbox">
+            <div class="c-checkbox mt-2">
                 <input type="checkbox" name="free-autocorrect" id="free-autocorrect">
                 <label for="free-autocorrect" data-i18n="newActivities.autocorrect">Autocorrection</label>
             </div>
 
-            <div class="content m-3" id="free-correction-content" style="display: none;">
+            <div class="content" id="free-correction-content" style="display: none;">
                 <label for="free-correction" data-i18n="newActivities.correction">Correction de l'activité</label>
                 <textarea id="free-correction" style="height:340px"></textarea>
 
@@ -86,7 +86,7 @@
                 <div id="quiz-suggestions-container">
                     <div class="form-group c-primary-form" id="quiz-group-1">
                         <label for="quiz-suggestion-1" id="quiz-label-suggestion-1">Proposition 1</label>
-                        <button class="btn c-btn-grey mx-2" data-i18n="newActivities.delete" id="quiz-button-suggestion-1" onclick="deleteQuizSuggestion(1)">Delete</button>
+                        <button class="btn c-btn-grey mx-2" data-i18n="newActivities.delete" id="quiz-button-suggestion-1" onclick="quizManager.deleteQuizSuggestion(1)">Delete</button>
 
                         <div class="input-group mt-3">
                             <input type="text" id="quiz-suggestion-1" class="form-control">
@@ -108,7 +108,7 @@
             </div>
 
             <div class="content m-3">
-                <button data-i18n="newActivities.addQuiz" class="btn c-btn-primary" onclick="addQuizSuggestion()">Ajouter une proposition</button>
+                <button data-i18n="newActivities.addQuiz" class="btn c-btn-primary" onclick="quizManager.addQuizSuggestion()">Ajouter une proposition</button>
             </div>
 
         </div>

@@ -69,9 +69,11 @@ DisplayPanel.prototype.classroom_dashboard_ide_panel = function (option) {
 DisplayPanel.prototype.classroom_dashboard_activities_panel = function () {
     $('table').localize();
     // Refresh the activities
-    Main.getClassroomManager().getStudentActivities(Main.getClassroomManager())
-    .then(() => {
-        studentActivitiesDisplay();
+    Main.getClassroomManager().getStudentActivities(Main.getClassroomManager()).then(() => {
+        coursesManager._requestGetMyCourseStudent().then((data) => {
+            Main.getClassroomManager()._myCourses = data;
+            studentActivitiesDisplay();
+        })
     });
 }
 
@@ -234,10 +236,11 @@ DisplayPanel.prototype.classroom_dashboard_form_classe_panel_update = function (
 
 DisplayPanel.prototype.classroom_dashboard_activities_panel_teacher = function () {
     ClassroomSettings.activity = false;
-    // Refresh the activities
-    Main.getClassroomManager().getTeacherActivities(Main.getClassroomManager()).then(() => {
-        teacherActivitiesDisplay();
-    });
+    if (foldersManager) {
+        if (foldersManager.actualFolder != null) {
+            foldersManager.goToFolder(null)
+        }
+    }
 }
 
 DisplayPanel.prototype.classroom_table_panel_teacher = function (link) {
@@ -269,8 +272,11 @@ DisplayPanel.prototype.classroom_table_panel_teacher = function (link) {
                 }
             }
             // Load the classroom with the current cache data
-            let students = getClassroomInListByLink(link)[0].students
-            displayStudentsInClassroom(students, link)
+            // seems to be duplicate call for displayStudentsInClassroom with the code below -> 309 - 310 updated by @Rémi C. October 2022
+            /* let students = getClassroomInListByLink(link)[0].students
+            displayStudentsInClassroom(students, link) */
+
+
             $('.classroom-link').html(ClassroomSettings.classroom)
             $('#classroom-code-share-qr-code').html('');
             currentOriginUrl = new URL(window.location.href).origin;
@@ -344,41 +350,43 @@ DisplayPanel.prototype.classroom_dashboard_new_activity_panel3 = function (ref) 
     }
 }
 
+//COURSEDISPLAY
 DisplayPanel.prototype.classroom_dashboard_activity_panel = function (id) {
     if (id != 'null') {
         if (UserManager.getUser().isRegular) {
             if (id.slice(0, 2) == "WK") {
-
                 ClassroomSettings.activity = id = Number(id.slice(2))
                 Activity = getActivity(id);
                 getTeacherActivity();
-
             } else {
                 ClassroomSettings.activity = id = Number(id.slice(2))
                 Main.getClassroomManager().getOneUserLinkActivity(id).then(function (result) {
                     Activity = result;
                     loadActivityForTeacher();
-                })
+                });
             }
         } else {
-            if ($_GET('interface') == 'newActivities' || $_GET('interface') == 'savedActivities') {
-                var isDoable = true
-            } else {
-                var isDoable = false
+            if ($_GET('option') != "course") {
+                if ($_GET('interface') == 'newActivities' || $_GET('interface') == 'savedActivities') {
+                    var isDoable = true
+                } else {
+                    var isDoable = false
+                }
+                ClassroomSettings.activity = id = Number(id.slice(2))
+                Activity = getActivity(id, $_GET('interface'))
+                if (typeof Activity == 'undefined') {
+                    console.error(`The activity can't be loaded!`);
+                    navigatePanel('classroom-dashboard-activities-panel', 'dashboard-activities');
+                    return;
+                }
+                // Run the activity tracker if the current activity is doable or exercise
+                if (Activity.evaluation != true || Activity.correction == null) {
+                    Main.activityTracker = new ActivityTracker();
+                    Main.activityTracker.startActivityTracker();
+                }
+                //loadActivityForStudents(isDoable)
+                loadCourseAndActivityForStudents(isDoable);
             }
-            ClassroomSettings.activity = id = Number(id.slice(2))
-            Activity = getActivity(id, $_GET('interface'))
-            if (typeof Activity == 'undefined') {
-                console.error(`The activity can't be loaded!`);
-                navigatePanel('classroom-dashboard-activities-panel', 'dashboard-activities');
-                return;
-            }
-            // Run the activity tracker if the current activity is doable or exercise
-            if (Activity.evaluation != true || Activity.correction == null) {
-                Main.activityTracker = new ActivityTracker();
-                Main.activityTracker.startActivityTracker();
-            }
-            loadActivityForStudents(isDoable)
         }
     }
 }
@@ -412,27 +420,24 @@ function getTeacherActivity() {
         </button>
 
         <ul class="dropdown-menu">
-            <li>
-                <a href="#" class="dropdown-item" href="#" onclick="attributeActivity(${Activity.id})" >
-                    ${capitalizeFirstLetter(i18next.t('words.attribute'))}
-                </a>
+            <li class="dropdown-item" onclick="attributeActivity(${Activity.id})">
+                ${capitalizeFirstLetter(i18next.t('words.attribute'))}
             </li>
         
-            <li>
-                <a class="dropdown-item" href="#" onclick="createActivity(null,${Activity.id})">
-                    ${capitalizeFirstLetter(i18next.t('words.duplicate'))}
-                </a>
+            <li class="dropdown-item" onclick="createActivity(null,${Activity.id})">
+                ${capitalizeFirstLetter(i18next.t('words.duplicate'))}
             </li>
                 
-            <li>
-                <a class="dropdown-item" onclick="activityModify(${Activity.id})" href="#">
-                    ${capitalizeFirstLetter(i18next.t('words.modify'))}
-                </a>
+            <li class="dropdown-item" onclick="activityModify(${Activity.id})">
+                ${capitalizeFirstLetter(i18next.t('words.modify'))}
             </li>
-            <li>
-                <a class="dropdown-item modal-activity-delete" href="#">
-                    ${capitalizeFirstLetter(i18next.t('words.delete'))}
-                </a>
+
+            <li class="dropdown-item" onclick="activityModify(${Activity.id}, true)">
+                ${capitalizeFirstLetter(i18next.t('words.rename'))}
+            </li>
+
+            <li class="dropdown-item modal-activity-delete">
+                ${capitalizeFirstLetter(i18next.t('words.delete'))}
             </li>
         </ul>
     </div>`
@@ -440,51 +445,11 @@ function getTeacherActivity() {
 
 
     if (IsJsonString(Activity.content)) {
+       
         const contentParsed = JSON.parse(Activity.content);
-        if (Activity.type == 'free' || Activity.type == 'reading') {
-            if (contentParsed.hasOwnProperty('description')) {
-                $('#activity-content').html(bbcodeToHtml(contentParsed.description));
-                $('#activity-content-container').show();
-            } 
-        } else if (Activity.type == 'fillIn') {
-            $("#activity-states").html(bbcodeToHtml(contentParsed.states));
-            let contentForTeacher = contentParsed.fillInFields.contentForTeacher;
-            contentForTeacher = parseContent(contentForTeacher, "lms-answer fill-in-answer-teacher", true);
-            $('#activity-content').html(bbcodeToHtml(contentForTeacher));
-            $("#activity-content-container").show();
-            $("#activity-states-container").show();
-
-        } else if (Activity.type == 'quiz') {
-            $("#activity-states").html(bbcodeToHtml(contentParsed.states));
-            $(`div[id^="teacher-suggestion-"]`).each(function() {
-                $(this).remove();
-            })
-
-            let data = JSON.parse(Activity.solution);
-            let htmlToPush = '';
-            for (let i = 1; i < data.length+1; i++) {
-                htmlToPush += `<div class="input-group c-checkbox quiz-answer-container" id="qcm-field-${i}">
-                                <input class="form-check-input" type="checkbox" id="show-quiz-checkbox-${i}" ${data[i-1].isCorrect ? 'checked' : ''} onclick="return false;">
-                                <label class="form-check-label" for="quiz-checkbox-${i}" id="show-quiz-label-checkbox-${i}">${data[i-1].inputVal}</label>
-                            </div>`;
-            }
-            $('#activity-content-container').append(htmlToPush);
-
-            $("#activity-content-container").show();
-            $("#activity-states-container").show();
-        } else if (Activity.type == 'dragAndDrop') {
-
-            $("#activity-states").html(bbcodeToHtml(contentParsed.states));
-
-            let contentForTeacher = contentParsed.dragAndDropFields.contentForTeacher;
-
-            contentForTeacher = parseContent(contentForTeacher, "drag-and-drop-answer-teacher", true);
-
-            $("#activity-content").html(bbcodeToHtml(contentForTeacher));
-            $("#activity-content-container").show();
-            $("#activity-states-container").show();
-
-            // Default behavior
+        const funct = customActivity.getTeacherActivityCustom.filter(activityValidate => activityValidate[0] == Activity.type)[0];
+        if (funct) { 
+            funct[1](contentParsed, Activity);
         } else {
             // LTI Activity
             if (Activity.isLti) {
@@ -494,9 +459,9 @@ function getTeacherActivity() {
                 $("#activity-content").html(bbcodeToHtml(contentParsed));
                 $("#activity-content-container").show();
             }
-        }
-        
+        }      
     } else {
+       
         $('#activity-content').html(bbcodeToHtml(Activity.content))
         $("#activity-content-container").show();
     }
@@ -504,6 +469,9 @@ function getTeacherActivity() {
     $('#activity-introduction').hide()
     $('#activity-validate').hide()
 }
+
+
+
 
 
 function getIntelFromClasses() {

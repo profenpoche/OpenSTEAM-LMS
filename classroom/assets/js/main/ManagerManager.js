@@ -251,13 +251,14 @@ class managerManager {
     /**
      * @returns promise
      */
-    updateDefaultUsersRestrictions($maxStudents) {
+    updateDefaultUsersRestrictions($maxStudents, $maxClassrooms) {
         return new Promise(function (resolve, reject) {
             $.ajax({
                 type: "POST",
                 url: "/routing/Routing.php?controller=superadmin&action=update_default_users_restrictions",
                 data: {
                     maxStudents: $maxStudents,
+                    maxClassrooms: $maxClassrooms
                 },
                 success: function (response) {
                     resolve(JSON.parse(response))
@@ -272,7 +273,7 @@ class managerManager {
     /**
      * @returns promise
      */
-    updateDefaultGroupsRestrictions($maxStudents, $maxTeachers, $maxPerTeachers) {
+    updateDefaultGroupsRestrictions($maxStudents, $maxTeachers, $maxPerTeachers, $maxClassrooms) {
         return new Promise(function (resolve, reject) {
             $.ajax({
                 type: "POST",
@@ -281,6 +282,7 @@ class managerManager {
                     maxStudents: $maxStudents,
                     maxTeachers: $maxTeachers,
                     maxPerTeachers: $maxPerTeachers,
+                    maxClassrooms: $maxClassrooms,
                 },
                 success: function (response) {
                     resolve(JSON.parse(response))
@@ -687,6 +689,11 @@ class managerManager {
             else
                 $('#group_name_from_table').text(group.name);
 
+            if (data == false) {
+                return;
+            }
+
+
             data.forEach(element => {
                 if (element.hasOwnProperty('currentPage')) {
                     mainManager.getmanagerManager()._paginationUsersInfo = element;
@@ -715,6 +722,17 @@ class managerManager {
                 } else {
 
                     mainManager.getmanagerManager()._allActualUsers.push(element);
+
+                    let $premium = "";
+                    if (element.p_user != null) {
+                        if (element.p_date_end != null) {
+                            $premium = new Date(element.p_date_end) < new Date() ? "Premium expired" : "Premium";
+                        } else {
+                            $premium = "Premium";
+                        }
+                    } else {
+                        $premium = " -- ";
+                    }
 
                     let $droits = " <i class='fas fa-question fa-2x' data-toggle='tooltip' data-placement='top' title='" + i18next.t('manager.table.userNoRights') + "'></i>";
                     if (element.hasOwnProperty('rights')) {
@@ -759,6 +777,7 @@ class managerManager {
                             <td>${element.firstname}</td>
                             <td>${$droits}</td>
                             <td>${div_img}</td>
+                            <td>${$premium}</td>
                             <td>
                                 <a class="c-link-primary d-inline-block" href="javascript:void(0)" onclick="resetUserPassword(${element.id})">
                                     <i class="fas fa-redo-alt fa-2x"></i>
@@ -781,6 +800,7 @@ class managerManager {
                             <td>${element.firstname}</td>
                             <td>${$droits}</td>
                             <td>${div_img}</td>
+                            <td>${$premium}</td>
                             <td>
                                 <a class="c-link-primary d-inline-block" href="javascript:void(0)" onclick="resetUserPassword(${element.id})">
                                     <i class="fas fa-redo-alt fa-2x"></i>
@@ -890,6 +910,18 @@ class managerManager {
                             activeFlag = false;
                         }
                     } 
+
+                    let $premium = "";
+                    if (element.p_user != null) {
+                        if (element.p_date_end != null) {
+                            $premium = new Date(element.p_date_end) < new Date() ? "Premium expired" : "Premium";
+                        } else {
+                            $premium = "Premium";
+                        }
+                    } else {
+                        $premium = " -- ";
+                    }
+
                     if (activeFlag) {
                         $data_table +=
                         `<tr>
@@ -897,6 +929,7 @@ class managerManager {
                             <td>${element.firstname}</td>
                             <td>${$droits}</td>
                             <td>${div_img}</td>
+                            <td>${$premium}</td>
                             <td>
                                 <a class="c-link-primary d-inline-block" href="javascript:void(0)" onclick="resetUserPassword(${element.id})">
                                     <i class="fas fa-redo-alt fa-2x"></i>
@@ -918,6 +951,7 @@ class managerManager {
                             <td>${element.firstname}</td>
                             <td>${$droits}</td>
                             <td>${div_img}</td>
+                            <td>${$premium}</td>
                             <td>
                                 <a class="c-link-primary d-inline-block" href="javascript:void(0)" onclick="resetUserPassword(${element.id})">
                                     <i class="fas fa-redo-alt fa-2x"></i>
