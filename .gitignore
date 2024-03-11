@@ -11,3 +11,4 @@ classroom/assets/plugins
 .gitignore
 .settings/org.eclipse.php.core.prefs
 .buildpath
+classroom/assets/media/logo-kidaia.png
