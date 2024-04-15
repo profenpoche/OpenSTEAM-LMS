@@ -2,7 +2,6 @@
 /node_modules
 .env 
 composer.lock
-/plugins
 classroom/assets/plugins
 /EmailTemplates
 .settings/org.eclipse.wst.common.project.facet.core.xml
