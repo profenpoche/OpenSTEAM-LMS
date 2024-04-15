@@ -1,3 +1,6 @@
 [submodule "LMS"]
 	path = LMS
 	url = ssh://pieber@pieber.fr/home/pieber/LMS.git
+[submodule "plugins"]
+	path = plugins
+	url = ssh://pieber@pieber.fr/home/pieber/pluginsOpenSTEAM.git
