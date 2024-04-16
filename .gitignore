@@ -11,3 +11,5 @@ classroom/assets/plugins
 .gitignore
 .settings/org.eclipse.php.core.prefs
 .buildpath
+/.idea
+/dev

@@ -1,5 +1,5 @@
 /*! WysiBB v1.5.1 2014-03-26
-    Author: Vadim Dobroskok
+	Author: Vadim Dobroskok
  */
 const WHITELIST = [
 	["youtu.be", /^http[s]*:\/\/youtu\.be\/([a-z0-9_-]+)/i, '<iframe src="http://www.youtube.com/embed/{SRC}" width="640" height="480" frameborder="0"></iframe>'],
@@ -49,11 +49,11 @@ if (getLangInCookie() == 'fr' || /fr\.vittascience/.test(window.location.href)) 
 		fontcolor: "Couleur de caractère",
 		fontsize: "Taille de caractère",
 		fontfamily: "Famille de police",
-		fs_verysmall: "Très petit",
-		fs_small: "Petit",
-		fs_normal: "Normal",
-		fs_big: "Grand",
-		fs_verybig: "Très grand",
+		fs_verysmall: "x 0.8",
+		fs_small: "x 1.2",
+		fs_normal: "x 1.4",
+		fs_big: "x 1.6",
+		fs_verybig: "x 1.8",
 		smilebox: "Insérer émoticône",
 		video: "Insérer vidéo Youtube",
 		peertube: "Insérer vidéo Peertube",
@@ -70,6 +70,7 @@ if (getLangInCookie() == 'fr' || /fr\.vittascience/.test(window.location.href)) 
 		modal_link_tab1: "Insérer URL",
 		modal_vitta_title: "Insérer IDE",
 		modal_vitta_title_pdf: "Insérer PDF",
+		modal_title_all_iframe: "Insérer une URL",
 		modal_vitta_url: "Insérer l'URL du projet ou <a href='/classroom/home.php?panel=classroom-dashboard-sandbox-panel&nav=dashboard-sandbox-teacher' target='blank'>créer un nouveau projet</a>.<br> Vous pouvez copier l'url du projet depuis la page du projet ou bien sélectionner l'option &#8220;intégrer dans l'activité&#8221; sur la carte du projet depuis <a href='/classroom/home.php?panel=classroom-dashboard-sandbox-panel&nav=dashboard-sandbox-teacher' target='blank'>la page sandbox</a>.",
 		modal_cabri_title: "Insérer cahier Cabri Express",
 		modal_cabri_url: "Insérer l'URL du cahier Cabri Express",
@@ -122,6 +123,7 @@ if (getLangInCookie() == 'fr' || /fr\.vittascience/.test(window.location.href)) 
 		genialy: "Insérer Genially",
 		vittaiframe: "Vittascience",
 		cabriiframe: "Cabri Express",
+		alliframe: "Iframe",
 		vittapdf: "Insérer un pdf",
 		maxWidthText: "Largeur maximale",
 		messages: {
@@ -162,7 +164,8 @@ if (getLangInCookie() == 'fr' || /fr\.vittascience/.test(window.location.href)) 
 		imgUpload: "Téleverser une image",
 		setFileTitle: "Titre du fichier",
 		fileUpload: "Teléverser un fichier",
-		compressFileText: "Compresser mon fichier"
+		compressFileText: "Compresser mon fichier",
+		myImages: "Mes images",
 	};
 } else {
 	WBBLANG['en'] = CURLANG = {
@@ -188,11 +191,11 @@ if (getLangInCookie() == 'fr' || /fr\.vittascience/.test(window.location.href)) 
 		fontcolor: "Font color",
 		fontsize: "Font size",
 		fontfamily: "Font family",
-		fs_verysmall: "Very small",
-		fs_small: "Small",
-		fs_normal: "Normal",
-		fs_big: "Big",
-		fs_verybig: "Very big",
+		fs_verysmall: "x 0.8",
+		fs_small: "x 1.2",
+		fs_normal: "x 1.4",
+		fs_big: "x 1.6",
+		fs_verybig: "x 1.8",
 		smilebox: "Insert emoticon",
 		video: "Insert YouTube",
 		peertube: "Insert peertube",
@@ -209,6 +212,7 @@ if (getLangInCookie() == 'fr' || /fr\.vittascience/.test(window.location.href)) 
 		modal_link_tab1: "Insert URL",
 		modal_vitta_title: "Insert IDE",
 		modal_vitta_title_pdf: "Insert PDF",
+		modal_title_all_iframe: "Insert URL",
 		modal_vitta_url: "Insert project URL or <a href='/classroom/home.php?panel=classroom-dashboard-sandbox-panel&nav=dashboard-sandbox-teacher' target='blank'>create new project</a>.<br> You can copy the url from the project page or select the &#8220;integrate into activity&#8221; option on the project card within the <a href='/classroom/home.php?panel=classroom-dashboard-sandbox-panel&nav=dashboard-sandbox-teacher' target='blank'>sandbox page</a>.",
 		modal_cabri_title: "Insert Cabri Express notebook",
 		modal_cabri_url: "Insert the URL of the Cabri Express notebook",
@@ -261,6 +265,7 @@ if (getLangInCookie() == 'fr' || /fr\.vittascience/.test(window.location.href)) 
 		genialy: "Insert Genially",
 		vittaiframe: "Vittascience",
 		cabriiframe: "Cabri Express",
+		alliframe: "Iframe",
 		vittapdf: "Pdf",
 		maxWidthText: "Max-width",
 		messages: {
@@ -301,7 +306,8 @@ if (getLangInCookie() == 'fr' || /fr\.vittascience/.test(window.location.href)) 
 		imgUpload: "Upload image",
 		setFileTitle: "File title",
 		fileUpload: "Upload a file",
-		compressFileText: "Compress my file"
+		compressFileText: "Compress my file",
+		myImages: "My images",
 	};
 }
 
@@ -383,6 +389,25 @@ wbbdebug = false;
 						'<div>{URL}</div>': '[iframe]{URL}[/iframe]'
 					}
 				},
+				alliframe: {
+					title: CURLANG.alliframe,
+					buttonHTML: '<i class="far fa-window-maximize" style="height:27px;width:31px;font-size:20px;text-align:center;padding-top: 5px;"></i>',
+					hotkey: '',
+					modal: {
+						title: CURLANG.modal_title_all_iframe,
+						width: "500px",
+						tabs: [{
+							input: [{
+								param: "URL",
+								title: CURLANG.modal_title_all_iframe,
+								validation: '^http(s)?:\/\/.*'
+							}]
+						}]
+					},
+					transform: {
+						'<div>{URL}</div>': '[iframe]{URL}[/iframe]'
+					}
+				},
 				vittapdf: {
 					title: CURLANG.vittapdf,
 					buttonHTML: '<i class="fas fa-file-pdf" style="height:27px;width:31px;font-size:20px;text-align:center;padding-top: 5px;"></i>',
@@ -407,7 +432,17 @@ wbbdebug = false;
 					transform: {
 						"<span class='lms-answer'>{SELTEXT}</span>": "[answer]{SELTEXT}[/answer]",
 					}
-					// button is completely hidden in the elements.css file
+					// button is completely hidden in the components.css file
+				},
+				myimages: {
+					title: CURLANG.myImages,
+					buttonHTML: '<i class="far fa-images" style="height:27px;width:31px;font-size:20px;text-align:center;padding-top: 5px;"></i>',
+					hotkey: '',
+					modal: Main.getClassroomManager().openModalWithMyImages,
+					transform: {
+						'<img src="{SRC}" title="{TITLE}" style="width:{WIDTH};" class="img-fluid img-custom">': '[imgcustom title={TITLE} width={WIDTH}]{SRC}[/imgcustom]',
+						'<img src="{SRC}" title="{TITLE}" class="img-fluid img-custom">': '[imgcustom title={TITLE}]{SRC}[/imgcustom]'
+					}
 				},
 				bold: {
 					title: CURLANG.bold,
@@ -472,15 +507,15 @@ wbbdebug = false;
 						width: "500px",
 						tabs: [{
 							input: [{
-									param: "SELTEXT",
-									title: CURLANG.modal_link_text,
-									type: "div"
-								},
-								{
-									param: "URL",
-									title: CURLANG.modal_link_url,
-									validation: '^(http(s)?:\/\/|mailto:)'
-								}
+								param: "SELTEXT",
+								title: CURLANG.modal_link_text,
+								type: "div"
+							},
+							{
+								param: "URL",
+								title: CURLANG.modal_link_url,
+								validation: '^(http(s)?:\/\/|mailto:)'
+							}
 							]
 						}]
 					},
@@ -633,13 +668,13 @@ wbbdebug = false;
 					valueBBname: "color",
 					subInsert: true,
 					colors: "#000000,#444444,#666666,#999999,#b6b6b6,#cccccc,#d8d8d8,#efefef,#f4f4f4,#ffffff,-, \
-							 #ff0000,#980000,#ff7700,#ffff00,#00ff00,#00ffff,#1e84cc,#0000ff,#9900ff,#ff00ff,-, \
-							 #f4cccc,#dbb0a7,#fce5cd,#fff2cc,#d9ead3,#d0e0e3,#c9daf8,#cfe2f3,#d9d2e9,#ead1dc, \
-							 #ea9999,#dd7e6b,#f9cb9c,#ffe599,#b6d7a8,#a2c4c9,#a4c2f4,#9fc5e8,#b4a7d6,#d5a6bd, \
-							 #e06666,#cc4125,#f6b26b,#ffd966,#93c47d,#76a5af,#6d9eeb,#6fa8dc,#8e7cc3,#c27ba0, \
-							 #cc0000,#a61c00,#e69138,#f1c232,#6aa84f,#45818e,#3c78d8,#3d85c6,#674ea7,#a64d79, \
-							 #900000,#85200C,#B45F06,#BF9000,#38761D,#134F5C,#1155Cc,#0B5394,#351C75,#741B47, \
-							 #660000,#5B0F00,#783F04,#7F6000,#274E13,#0C343D,#1C4587,#073763,#20124D,#4C1130",
+								 #ff0000,#980000,#ff7700,#ffff00,#00ff00,#00ffff,#1e84cc,#0000ff,#9900ff,#ff00ff,-, \
+								 #f4cccc,#dbb0a7,#fce5cd,#fff2cc,#d9ead3,#d0e0e3,#c9daf8,#cfe2f3,#d9d2e9,#ead1dc, \
+								 #ea9999,#dd7e6b,#f9cb9c,#ffe599,#b6d7a8,#a2c4c9,#a4c2f4,#9fc5e8,#b4a7d6,#d5a6bd, \
+								 #e06666,#cc4125,#f6b26b,#ffd966,#93c47d,#76a5af,#6d9eeb,#6fa8dc,#8e7cc3,#c27ba0, \
+								 #cc0000,#a61c00,#e69138,#f1c232,#6aa84f,#45818e,#3c78d8,#3d85c6,#674ea7,#a64d79, \
+								 #900000,#85200C,#B45F06,#BF9000,#38761D,#134F5C,#1155Cc,#0B5394,#351C75,#741B47, \
+								 #660000,#5B0F00,#783F04,#7F6000,#274E13,#0C343D,#1C4587,#073763,#20124D,#4C1130",
 					transform: {
 						'<font color="{COLOR}">{SELTEXT}</font>': '[color={COLOR}]{SELTEXT}[/color]'
 					}
@@ -668,41 +703,41 @@ wbbdebug = false;
 					excmd: 'fontName',
 					valueBBname: "font",
 					options: [{
-							title: "Arial",
-							exvalue: "Arial"
-						},
-						{
-							title: "Comic Sans MS",
-							exvalue: "Comic Sans MS"
-						},
-						{
-							title: "Courier New",
-							exvalue: "Courier New"
-						},
-						{
-							title: "Georgia",
-							exvalue: "Georgia"
-						},
-						{
-							title: "Lucida Sans Unicode",
-							exvalue: "Lucida Sans Unicode"
-						},
-						{
-							title: "Tahoma",
-							exvalue: "Tahoma"
-						},
-						{
-							title: "Times New Roman",
-							exvalue: "Times New Roman"
-						},
-						{
-							title: "Trebuchet MS",
-							exvalue: "Trebuchet MS"
-						},
-						{
-							title: "Verdana",
-							exvalue: "Verdana"
-						}
+						title: "Arial",
+						exvalue: "Arial"
+					},
+					{
+						title: "Comic Sans MS",
+						exvalue: "Comic Sans MS"
+					},
+					{
+						title: "Courier New",
+						exvalue: "Courier New"
+					},
+					{
+						title: "Georgia",
+						exvalue: "Georgia"
+					},
+					{
+						title: "Lucida Sans Unicode",
+						exvalue: "Lucida Sans Unicode"
+					},
+					{
+						title: "Tahoma",
+						exvalue: "Tahoma"
+					},
+					{
+						title: "Times New Roman",
+						exvalue: "Times New Roman"
+					},
+					{
+						title: "Trebuchet MS",
+						exvalue: "Trebuchet MS"
+					},
+					{
+						title: "Verdana",
+						exvalue: "Verdana"
+					}
 					],
 					transform: {
 						'<font face="{FONT}">{SELTEXT}</font>': '[font={FONT}]{SELTEXT}[/font]'
@@ -784,7 +819,7 @@ wbbdebug = false;
 					excmd: 'fontSize',
 					exvalue: "1",
 					transform: {
-						'<font size="1">{SELTEXT}</font>': '[size=50]{SELTEXT}[/size]'
+						'<font size="1">{SELTEXT}</font>': '[size=0.8]{SELTEXT}[/size]'
 					}
 				},
 				fs_small: {
@@ -793,7 +828,7 @@ wbbdebug = false;
 					excmd: 'fontSize',
 					exvalue: "2",
 					transform: {
-						'<font size="2">{SELTEXT}</font>': '[size=85]{SELTEXT}[/size]'
+						'<font size="2">{SELTEXT}</font>': '[size=1.2]{SELTEXT}[/size]'
 					}
 				},
 				fs_normal: {
@@ -802,7 +837,7 @@ wbbdebug = false;
 					excmd: 'fontSize',
 					exvalue: "3",
 					transform: {
-						'<font size="3">{SELTEXT}</font>': '[size=100]{SELTEXT}[/size]'
+						'<font size="3">{SELTEXT}</font>': '[size=1.4]{SELTEXT}[/size]'
 					}
 				},
 				fs_big: {
@@ -811,7 +846,7 @@ wbbdebug = false;
 					excmd: 'fontSize',
 					exvalue: "4",
 					transform: {
-						'<font size="4">{SELTEXT}</font>': '[size=150]{SELTEXT}[/size]'
+						'<font size="4">{SELTEXT}</font>': '[size=1.6]{SELTEXT}[/size]'
 					}
 				},
 				fs_verybig: {
@@ -820,7 +855,7 @@ wbbdebug = false;
 					excmd: 'fontSize',
 					exvalue: "6",
 					transform: {
-						'<font size="6">{SELTEXT}</font>': '[size=200]{SELTEXT}[/size]'
+						'<font size="6">{SELTEXT}</font>': '[size=1.8]{SELTEXT}[/size]'
 					}
 				},
 
@@ -877,72 +912,72 @@ wbbdebug = false;
 
 						this.$modal = $('#wbbmodal').prependTo(document.body)
 							.html(`
-							<div class="wbbm hastabs" hastabs"="" style="max-width: 500px; width: 600px; margin-top: 202.479px;">
-								<div class="wbbm-title">
-									<span class="wbbm-title-text">Image</span>
-									<span class="wbbclose" title="${CURLANG.close}">×</span>
-								</div>
-								<div class="wbbm-content">
-									<div class="wbbm-tablist">
-										<ul>
-											<li class="on" id="upload" onclick="$(this).parent().find('.on').removeClass('on');$(this).addClass('on');$(this).parents('.wbbm-content').find('.tab-cont').hide();$(this).parents('.wbbm-content').find('.tab0').show()">
-												${CURLANG.imgUpload}
-											</li>
-											
-											<li class="" id="url" onclick="$(this).parent().find('.on').removeClass('on');$(this).addClass('on');$(this).parents('.wbbm-content').find('.tab-cont').hide();$(this).parents('.wbbm-content').find('.tab1').show()">
-												${CURLANG.modal_img_tab1}
-											</li>
-										</ul>
+								<div class="wbbm hastabs" hastabs"="" style="max-width: 500px; width: 600px; margin-top: 202.479px;">
+									<div class="wbbm-title">
+										<span class="wbbm-title-text">Image</span>
+										<span class="wbbclose" title="${CURLANG.close}">×</span>
 									</div>
-									<div id="fileUploadMsgBox" class="text-center">
-				
+									<div class="wbbm-content">
+										<div class="wbbm-tablist">
+											<ul>
+												<li class="on" id="upload" onclick="$(this).parent().find('.on').removeClass('on');$(this).addClass('on');$(this).parents('.wbbm-content').find('.tab-cont').hide();$(this).parents('.wbbm-content').find('.tab0').show()">
+													${CURLANG.imgUpload}
+												</li>
+												
+												<li class="" id="url" onclick="$(this).parent().find('.on').removeClass('on');$(this).addClass('on');$(this).parents('.wbbm-content').find('.tab-cont').hide();$(this).parents('.wbbm-content').find('.tab1').show()">
+													${CURLANG.modal_img_tab1}
+												</li>
+											</ul>
 										</div>
-									<div class="wbbm-cont">
-										
-										<div class="tab-cont tab0" tid="0">													
+										<div id="fileUploadMsgBox" class="text-center">
+					
+											</div>
+										<div class="wbbm-cont">
+											
+											<div class="tab-cont tab0" tid="0">													
+													<div class="wbbm-inp-row">
+														<label>${CURLANG.setImgTitle}</label>
+														<input class="inp-text modal-text" type="text" id="uploadImgTitle" name="TITLE" value="">
+													</div>
+													<div class="fileupload" class="d-flex flex-column-reverse" style="text-align:center;margin:0 auto;">
+														<div class="mb-3">
+															<input id="imageToUpload" class="file" type="file" name="img" accept=".jpg,.jpeg,.png,.svg,.webp,.gif,.apng" />
+															<button id="nicebtn" class="wbb-button">${CURLANG.modal_img_btn}</button> 
+															<p class="my-2">Format(s) : .jpg,.jpeg,.png,.svg,.webp,.gif,.apng ( 1Mb max.)</p>
+															<p class="my-2"><a href="https://www.iloveimg.com/" target="_blank">${CURLANG.compressFileText}</a></p>
+														</div>
+													</div>
+													<div class="wbbm-inp-row">
+													<label>${CURLANG.maxWidthText}</label>
+													<input type="range" id="uploadImgWidth" name="WIDTH"  min="0" step="5" max="100" value="100" style="padding: 5px 0;" onchange="((event) =>{ document.querySelector('#uploadImgWidthDisplay').textContent = event.target.value +'%' })(event) ">
+													<div id="uploadImgWidthDisplay">100%</div>
+													
+												</div> 
+											</div>
+											<div class="tab-cont tab1" tid="1" style="display: none;">
 												<div class="wbbm-inp-row">
 													<label>${CURLANG.setImgTitle}</label>
-													<input class="inp-text modal-text" type="text" id="uploadImgTitle" name="TITLE" value="">
-												</div>
-												<div class="fileupload" class="d-flex flex-column-reverse" style="text-align:center;margin:0 auto;">
-													<div class="mb-3">
-														<input id="imageToUpload" class="file" type="file" name="img" accept=".jpg,.jpeg,.png,.svg,.webp,.gif,.apng" />
-														<button id="nicebtn" class="wbb-button">${CURLANG.modal_img_btn}</button> 
-														<p class="my-2">Format(s) : .jpg,.jpeg,.png,.svg,.webp,.gif,.apng ( 1Mb max.)</p>
-														<p class="my-2"><a href="https://www.iloveimg.com/" target="_blank">${CURLANG.compressFileText}</a></p>
-													</div>
+													<input class="inp-text modal-text" type="text" id="urlImgTitle" name="TITLE" value="">
 												</div>
 												<div class="wbbm-inp-row">
-												<label>${CURLANG.maxWidthText}</label>
-												<input type="range" id="uploadImgWidth" name="WIDTH"  min="0" step="5" max="100" value="100" style="padding: 5px 0;" onchange="((event) =>{ document.querySelector('#uploadImgWidthDisplay').textContent = event.target.value +'%' })(event) ">
-												<div id="uploadImgWidthDisplay">100%</div>
-												
-											</div> 
-										</div>
-										<div class="tab-cont tab1" tid="1" style="display: none;">
-											<div class="wbbm-inp-row">
-												<label>${CURLANG.setImgTitle}</label>
-												<input class="inp-text modal-text" type="text" id="urlImgTitle" name="TITLE" value="">
-											</div>
-											<div class="wbbm-inp-row">
-												<label>${CURLANG.modal_img_tab1}</label>
-												<input class="inp-text modal-text" type="text" id="urlImgSrc" name="SRC" value="">
-											</div>
-											<div class="wbbm-inp-row">
-												<label>${CURLANG.maxWidthText}</label>
-												<input type="range" id="urlImgWidth" name="WIDTH"  min="0" step="5" max="100" value="100" style="padding: 5px 0;" onchange="((event) =>{ document.querySelector('#urlImgWidthDisplay').textContent = event.target.value +'%' })(event) ">
-												<div id="urlImgWidthDisplay">100%</div>
-												
+													<label>${CURLANG.modal_img_tab1}</label>
+													<input class="inp-text modal-text" type="text" id="urlImgSrc" name="SRC" value="">
+												</div>
+												<div class="wbbm-inp-row">
+													<label>${CURLANG.maxWidthText}</label>
+													<input type="range" id="urlImgWidth" name="WIDTH"  min="0" step="5" max="100" value="100" style="padding: 5px 0;" onchange="((event) =>{ document.querySelector('#urlImgWidthDisplay').textContent = event.target.value +'%' })(event) ">
+													<div id="urlImgWidthDisplay">100%</div>
+													
+												</div>
 											</div>
 										</div>
 									</div>
+									<div class="wbbm-bottom">
+										<button id="wbbm-submit" class="wbb-button">${CURLANG.save}</button>
+										<button id="wbbm-cancel" class="wbb-cancel-button">${CURLANG.cancel}</button>
+									</div>
 								</div>
-								<div class="wbbm-bottom">
-									<button id="wbbm-submit" class="wbb-button">${CURLANG.save}</button>
-									<button id="wbbm-cancel" class="wbb-cancel-button">${CURLANG.cancel}</button>
-								</div>
-							</div>
-						`).show()
+							`).show()
 
 						// make the submit bouton disabled by default until all is ok
 						// this.$modal.find('#uploadToServer').attr('disabled', true)
@@ -986,19 +1021,19 @@ wbbdebug = false;
 								})
 
 								fileUploadMsgBox.html(`
-									<div class="alert alert-danger">
-										<p class="my-0">${output}</>
-									</div>
-								`)
+										<div class="alert alert-danger">
+											<p class="my-0">${output}</>
+										</div>
+									`)
 								return
 							}
 
 							// no errors, set success msg
 							fileUploadMsgBox.html(`
-								<div class="alert alert-success">
-									<p class="my-0">${CURLANG.messages.image.fileIsValid}</>
-								</div>
-							`)
+									<div class="alert alert-success">
+										<p class="my-0">${CURLANG.messages.image.fileIsValid}</>
+									</div>
+								`)
 						}, this))
 
 						// HANDLE CANCEL BUTTON CLICK
@@ -1075,23 +1110,24 @@ wbbdebug = false;
 								// some errors found, display them to the user
 								if (errors != '') {
 									fileUploadMsgBox.html(`
-										<div class="alert alert-danger">
-											${errors}
-										</div>
-									`)
+											<div class="alert alert-danger">
+												${errors}
+											</div>
+										`)
 									return
 								}
 
 								// no errors, prepare file to be submitted 
 								const dataToSend = new FormData()
 								dataToSend.append('image', imageToUpload)
+								dataToSend.append('title', uploadImgTitle)
 
 								// inform the user that its request is loading
 								fileUploadMsgBox.html(`
-									<div class="alert alert-info">
-										<p class="my-0">${CURLANG.loading}</>
-									</div>
-								`)
+										<div class="alert alert-info">
+											<p class="my-0">${CURLANG.loading}</>
+										</div>
+									`)
 
 								// IMAGE UPLOAD ON THE SERVER
 								const handleImageUploadOnServer = async () => {
@@ -1111,10 +1147,10 @@ wbbdebug = false;
 
 											// render errors output to the user
 											fileUploadMsgBox.html(`
-												<div class="alert alert-danger">
-													${output}
-												</div>
-											`)
+													<div class="alert alert-danger">
+														${output}
+													</div>
+												`)
 											return
 										}
 
@@ -1123,10 +1159,10 @@ wbbdebug = false;
 
 											// display success msg and prepare data for the bbcode 
 											fileUploadMsgBox.html(`
-												<div class="alert alert-success">
-													<p class="my-0">${CURLANG.messages.uploadSuccess}</>
-												</div>
-											`)
+													<div class="alert alert-success">
+														<p class="my-0">${CURLANG.messages.uploadSuccess}</>
+													</div>
+												`)
 											imgSrc = data.src
 											imgTitle = uploadImgTitle
 											imgWidth = `${uploadImgWidth}%`
@@ -1143,10 +1179,10 @@ wbbdebug = false;
 										}
 									} catch (error) {
 										fileUploadMsgBox.html(`
-											<div class="alert alert-danger">
-												<p class="my-0">${CURLANG.messages.unexpectedErrorOccured}</>
-											</div>
-										`)
+												<div class="alert alert-danger">
+													<p class="my-0">${CURLANG.messages.unexpectedErrorOccured}</>
+												</div>
+											`)
 									}
 								}
 								handleImageUploadOnServer()
@@ -1159,7 +1195,7 @@ wbbdebug = false;
 								imgTitle = this.$modal.find('.tab1 #urlImgTitle')[0].value
 								imgSrc = this.$modal.find('.tab1 #urlImgSrc')[0].value
 								imgWidth = this.$modal.find('.tab1 #urlImgWidth')[0] ?
-									`${this.$modal.find('.tab1 #urlImgWidth')[0].value }%` :
+									`${this.$modal.find('.tab1 #urlImgWidth')[0].value}%` :
 									'100%'
 
 								// check for errors
@@ -1174,19 +1210,19 @@ wbbdebug = false;
 								// some errors found, display them to the user
 								if (errors != '') {
 									fileUploadMsgBox.html(`
-									<div class="alert alert-danger">
-										${errors}
-									</div>
-									`)
+										<div class="alert alert-danger">
+											${errors}
+										</div>
+										`)
 									return
 								}
 
 								// no errors, display success msg and prepare data for the bbcode 
 								fileUploadMsgBox.html(`
-									<div class="alert alert-success">
-										<p class="my-0">${CURLANG.messages.dataSavedSuccessfully}</>
-									</div>
-								`)
+										<div class="alert alert-success">
+											<p class="my-0">${CURLANG.messages.dataSavedSuccessfully}</>
+										</div>
+									`)
 
 								this.wbbInsertCallback(cmd, {
 									SRC: imgSrc,
@@ -1217,61 +1253,61 @@ wbbdebug = false;
 						// append the content onto the modal
 						this.$modal.prependTo(document.body)
 							.html(`
-								<div class="wbbm hastabs" hastabs"="" style="max-width: 500px; width: 600px; margin-top: 202.479px;">
-									<div class="wbbm-title">
-										<span class="wbbm-title-text">${CURLANG.vittapdf}</span>
-										<span class="wbbclose" title="${CURLANG.close}">×</span>
-									</div>
-									<div class="wbbm-content">
-										<div class="wbbm-tablist">
-											<ul>
-												<li class="on" id="upload" onclick="$(this).parent().find('.on').removeClass('on');$(this).addClass('on');$(this).parents('.wbbm-content').find('.tab-cont').hide();$(this).parents('.wbbm-content').find('.tab0').show()">
-													${CURLANG.fileUpload}
-												</li>
-												
-												<li class="" id="url" onclick="$(this).parent().find('.on').removeClass('on');$(this).addClass('on');$(this).parents('.wbbm-content').find('.tab-cont').hide();$(this).parents('.wbbm-content').find('.tab1').show()">
-													${CURLANG.modal_img_tab1}
-												</li>
-											</ul>
+									<div class="wbbm hastabs" hastabs"="" style="max-width: 500px; width: 600px; margin-top: 202.479px;">
+										<div class="wbbm-title">
+											<span class="wbbm-title-text">${CURLANG.vittapdf}</span>
+											<span class="wbbclose" title="${CURLANG.close}">×</span>
 										</div>
-										<div id="fileUploadMsgBox" class="text-center">
-					
+										<div class="wbbm-content">
+											<div class="wbbm-tablist">
+												<ul>
+													<li class="on" id="upload" onclick="$(this).parent().find('.on').removeClass('on');$(this).addClass('on');$(this).parents('.wbbm-content').find('.tab-cont').hide();$(this).parents('.wbbm-content').find('.tab0').show()">
+														${CURLANG.fileUpload}
+													</li>
+													
+													<li class="" id="url" onclick="$(this).parent().find('.on').removeClass('on');$(this).addClass('on');$(this).parents('.wbbm-content').find('.tab-cont').hide();$(this).parents('.wbbm-content').find('.tab1').show()">
+														${CURLANG.modal_img_tab1}
+													</li>
+												</ul>
 											</div>
-										<div class="wbbm-cont">
-											
-											<div class="tab-cont tab0" tid="0">
-												<div class="wbbm-inp-row">
-													<label>${CURLANG.setFileTitle}</label>
-													<input class="inp-text modal-text" type="text" id="uploadFileTitle" name="TITLE" value="">
+											<div id="fileUploadMsgBox" class="text-center">
+						
 												</div>
-												<div class="fileupload" class="d-flex flex-column-reverse" style="text-align:center;margin:0 auto;">
-													<div class="mb-3">
-														<input id="fileToUpload" class="file" type="file" name="file" accept=".pdf" />
-														<button id="nicebtn" class="wbb-button">${CURLANG.modal_img_btn}</button> 
-														<p class="my-2">Format(s) : .pdf ( 5Mb max.)</p>
-														<p class="my-2"><a href="https://www.ilovepdf.com/" target="_blank">${CURLANG.compressFileText}</a></p>
+											<div class="wbbm-cont">
+												
+												<div class="tab-cont tab0" tid="0">
+													<div class="wbbm-inp-row">
+														<label>${CURLANG.setFileTitle}</label>
+														<input class="inp-text modal-text" type="text" id="uploadFileTitle" name="TITLE" value="">
+													</div>
+													<div class="fileupload" class="d-flex flex-column-reverse" style="text-align:center;margin:0 auto;">
+														<div class="mb-3">
+															<input id="fileToUpload" class="file" type="file" name="file" accept=".pdf" />
+															<button id="nicebtn" class="wbb-button">${CURLANG.modal_img_btn}</button> 
+															<p class="my-2">Format(s) : .pdf ( 5Mb max.)</p>
+															<p class="my-2"><a href="https://www.ilovepdf.com/" target="_blank">${CURLANG.compressFileText}</a></p>
+														</div>
 													</div>
 												</div>
-											</div>
-											<div class="tab-cont tab1" tid="1" style="display: none;">
-												<div class="wbbm-inp-row">
-													<label>${CURLANG.setFileTitle}</label>
-													<input class="inp-text modal-text" type="text" id="urlFileTitle" name="TITLE" value="">
+												<div class="tab-cont tab1" tid="1" style="display: none;">
+													<div class="wbbm-inp-row">
+														<label>${CURLANG.setFileTitle}</label>
+														<input class="inp-text modal-text" type="text" id="urlFileTitle" name="TITLE" value="">
+													</div>
+													<div class="wbbm-inp-row">
+														<label>${CURLANG.modal_img_tab1}</label>
+														<input class="inp-text modal-text" type="text" id="urlFileSrc" name="SRC" value="">
+													</div>
+													
 												</div>
-												<div class="wbbm-inp-row">
-													<label>${CURLANG.modal_img_tab1}</label>
-													<input class="inp-text modal-text" type="text" id="urlFileSrc" name="SRC" value="">
-												</div>
-												
 											</div>
 										</div>
+										<div class="wbbm-bottom">
+											<button id="wbbm-submit" class="wbb-button">${CURLANG.save}</button>
+											<button id="wbbm-cancel" class="wbb-cancel-button">${CURLANG.cancel}</button>
+										</div>
 									</div>
-									<div class="wbbm-bottom">
-										<button id="wbbm-submit" class="wbb-button">${CURLANG.save}</button>
-										<button id="wbbm-cancel" class="wbb-cancel-button">${CURLANG.cancel}</button>
-									</div>
-								</div>
-							`).show()
+								`).show()
 
 						// HANDLE CHANGE FOR PDF FILE INPUT
 						this.$modal.find('#fileToUpload').change($.proxy(function (e) {
@@ -1309,19 +1345,19 @@ wbbdebug = false;
 								})
 
 								fileUploadMsgBox.html(`
-									<div class="alert alert-danger">
-										<p class="my-0">${output}</>
-									</div>
-								`)
+										<div class="alert alert-danger">
+											<p class="my-0">${output}</>
+										</div>
+									`)
 								return
 							}
 
 							// no errors, set success msg
 							fileUploadMsgBox.html(`
-								<div class="alert alert-success">
-									<p class="my-0">${CURLANG.messages.file.fileIsValid}</>
-								</div>
-							`)
+									<div class="alert alert-success">
+										<p class="my-0">${CURLANG.messages.file.fileIsValid}</>
+									</div>
+								`)
 						}, this));
 
 						// HANDLE CANCEL BUTTON CLICK
@@ -1385,10 +1421,10 @@ wbbdebug = false;
 										output += `<p class="my-0">${CURLANG.messages.file[error.errorType]}</>`
 									})
 									fileUploadMsgBox.html(`
-										<div class="alert alert-danger">
-											${output}
-										</div>
-									`)
+											<div class="alert alert-danger">
+												${output}
+											</div>
+										`)
 									return
 								}
 
@@ -1398,10 +1434,10 @@ wbbdebug = false;
 
 								// inform the user that its request is loading
 								fileUploadMsgBox.html(`
-									<div class="alert alert-info">
-										<p class="my-0">${CURLANG.loading}</>
-									</div>
-								`)
+										<div class="alert alert-info">
+											<p class="my-0">${CURLANG.loading}</>
+										</div>
+									`)
 
 								// FILE UPLOAD ON THE SERVER
 								const handleFileUploadOnServer = async () => {
@@ -1421,10 +1457,10 @@ wbbdebug = false;
 
 											// render errors output to the user
 											fileUploadMsgBox.html(`
-												<div class="alert alert-danger">
-													${output}
-												</div>
-											`)
+													<div class="alert alert-danger">
+														${output}
+													</div>
+												`)
 											return
 										}
 
@@ -1433,10 +1469,10 @@ wbbdebug = false;
 
 											// display success msg and prepare data for the bbcode 
 											fileUploadMsgBox.html(`
-												<div class="alert alert-success">
-													<p class="my-0">${CURLANG.messages.uploadSuccess}</>
-												</div>
-											`)
+													<div class="alert alert-success">
+														<p class="my-0">${CURLANG.messages.uploadSuccess}</>
+													</div>
+												`)
 											fileSrc = data.src
 											fileTitle = uploadFileTitle
 
@@ -1452,10 +1488,10 @@ wbbdebug = false;
 										}
 									} catch (error) {
 										fileUploadMsgBox.html(`
-											<div class="alert alert-danger">
-												<p class="my-0">${CURLANG.messages.unexpectedErrorOccured}</>
-											</div>
-										`)
+												<div class="alert alert-danger">
+													<p class="my-0">${CURLANG.messages.unexpectedErrorOccured}</>
+												</div>
+											`)
 									}
 
 								}
@@ -1487,19 +1523,19 @@ wbbdebug = false;
 										output += `<p class="my-0">${CURLANG.messages.file[error.errorType]}</>`
 									})
 									fileUploadMsgBox.html(`
-										<div class="alert alert-danger">
-											${output}
-										</div>
-									`)
+											<div class="alert alert-danger">
+												${output}
+											</div>
+										`)
 									return
 								}
 
 								// display success msg and prepare data for the bbcode 
 								fileUploadMsgBox.html(`
-									<div class="alert alert-success">
-										<p class="my-0">${CURLANG.messages.dataSavedSuccessfully}</>
-									</div>
-								`)
+										<div class="alert alert-success">
+											<p class="my-0">${CURLANG.messages.dataSavedSuccessfully}</>
+										</div>
+									`)
 
 								this.wbbInsertCallback(cmd, {
 									SRC: fileSrc,
@@ -1534,36 +1570,36 @@ wbbdebug = false;
 								mathFieldValue = element.dataset.math
 							}
 						})
-						
+
 						// append the content onto the modal
 						this.$modal.prependTo(document.body)
 							.html(`
-								<div class="wbbm hastabs" hastabs"="" style="max-width: 500px; width: 600px; margin-top: 202.479px;">
-									<div class="wbbm-title">
-										<span class="wbbm-title-text">${CURLANG.modal_math_title}</span>
-										<span class="wbbclose" title="${CURLANG.close}">×</span>
-									</div>
-									<div class="wbbm-content">
-										<div class="wbbm-cont">
-											<div>
-											</div>
-
-											<div class="wbbm-inp-row">
-												<label for="mathFormula">${CURLANG.modal_math_text}</label>
-												<math-field id="mathField" class="form-control mb-2">${mathFieldValue}</math-field>
-												<textarea id="mathFormula" class="form-control" name="MATH" style="height: 100px;" placeholder="">${mathFieldValue}</textarea>
-
-											</div>
-													
-											</div>
-											<div class="wbbm-bottom">
-												<button id="wbbm-submit" class="wbb-button">${CURLANG.save}</button>
-												<button id="wbbm-cancel" class="wbb-cancel-button">${CURLANG.cancel}</button>
+									<div class="wbbm hastabs" hastabs"="" style="max-width: 500px; width: 600px; margin-top: 202.479px;">
+										<div class="wbbm-title">
+											<span class="wbbm-title-text">${CURLANG.modal_math_title}</span>
+											<span class="wbbclose" title="${CURLANG.close}">×</span>
+										</div>
+										<div class="wbbm-content">
+											<div class="wbbm-cont">
+												<div>
+												</div>
+	
+												<div class="wbbm-inp-row">
+													<label for="mathFormula">${CURLANG.modal_math_text}</label>
+													<math-field id="mathField" class="form-control mb-2">${mathFieldValue}</math-field>
+													<textarea id="mathFormula" class="form-control" name="MATH" style="height: 100px;" placeholder="">${mathFieldValue}</textarea>
+	
+												</div>
+														
+												</div>
+												<div class="wbbm-bottom">
+													<button id="wbbm-submit" class="wbb-button">${CURLANG.save}</button>
+													<button id="wbbm-cancel" class="wbb-cancel-button">${CURLANG.cancel}</button>
+												</div>
 											</div>
 										</div>
 									</div>
-								</div>
-							`).show()
+								`).show()
 
 						// bind the math-field to the input and vice-versa
 						const mathField = document.getElementById('mathField');
@@ -1577,8 +1613,8 @@ wbbdebug = false;
 						mathFormula.addEventListener('input', (ev) => {
 							mathField.setValue(
 								ev.target.value, {
-									suppressChangeNotifications: true
-								}
+								suppressChangeNotifications: true
+							}
 							);
 						});
 
@@ -1601,9 +1637,11 @@ wbbdebug = false;
 							let mathFieldElement = $(this.body.children).filter((index, element) => {
 								return element.value === mathFieldValue
 							})
+
 							
 							if (mathFieldElement.length) {
 								mathFieldElement.val(mathFormula)
+								this.$editor.find('textarea').forceInsertBbcode(this.$editor.find('textarea').bbcode().replace(mathFieldValue, mathFormula));
 							} else {
 								// insert the data
 								this.wbbInsertCallback(cmd, {
@@ -1616,9 +1654,9 @@ wbbdebug = false;
 								this.updateUI();
 							}, 300)
 						}
-						, this));
-					}, 
-					
+							, this));
+					},
+
 					transform: {
 						"<math-field read-only class='wysibb-math-field' style='display:inline-block'>{MATH}</math-field>": "[math]{MATH}[/math]"
 					}
@@ -2077,7 +2115,7 @@ wbbdebug = false;
 						document.execCommand('StyleWithCSS', false, false);
 						//document.designMode = "on";
 						this.$body.append("<span></span>");
-					} catch (e) {}
+					} catch (e) { }
 				} else {
 					//use onlybbmode
 					this.options.onlyBBmode = this.options.bbmode = true;
@@ -2263,7 +2301,7 @@ wbbdebug = false;
 			//attach events
 			this.controllers.push($btn);
 			$btn.bind('queryState', $.proxy(function (e) {
-				(this.queryState(bn)) ? $(e.currentTarget).addClass("on"): $(e.currentTarget).removeClass("on");
+				(this.queryState(bn)) ? $(e.currentTarget).addClass("on") : $(e.currentTarget).removeClass("on");
 			}, this));
 			$btn.mousedown($.proxy(function (e) {
 				e.preventDefault();
@@ -2354,7 +2392,7 @@ wbbdebug = false;
 				for (var i = 1; i <= rc[0]; i++) {
 					code += (this.options.bbmode) ? ' [tr]\n' : '<tr>';
 					for (var j = 1; j <= rc[1]; j++) {
-						code += (this.options.bbmode) ? '  [td][/td]\n' : '<td>\uFEFF</td>';
+						code += (this.options.bbmode) ? '  [td][/td]\n' : '<td></td>';
 					}
 					code += (this.options.bbmode) ? '[/tr]\n' : '</tr>';
 				}
@@ -2507,17 +2545,17 @@ wbbdebug = false;
 				$.log("Init modal");
 				this.$modal = $('<div>').attr("id", "wbbmodal").prependTo(document.body)
 					.html(`<div class="wbbm">
-							<div class="wbbm-title">
-								<span class="wbbm-title-text"></span>
-								<span class="wbbclose" title="${CURLANG.close}">×</span>
-							</div>
-							<div class="wbbm-content"></div>
-							<div class="wbbm-bottom">
-								<button id="wbbm-submit" class="wbb-button">${CURLANG.save}</button>
-								<button id="wbbm-cancel" class="wbb-cancel-button">${CURLANG.cancel}</button>
-								<button id="wbbm-remove" class="wbb-remove-button">${CURLANG.remove}</button>
-							</div>
-						</div>`).hide();
+								<div class="wbbm-title">
+									<span class="wbbm-title-text"></span>
+									<span class="wbbclose" title="${CURLANG.close}">×</span>
+								</div>
+								<div class="wbbm-content"></div>
+								<div class="wbbm-bottom">
+									<button id="wbbm-submit" class="wbb-button">${CURLANG.save}</button>
+									<button id="wbbm-cancel" class="wbb-cancel-button">${CURLANG.cancel}</button>
+									<button id="wbbm-remove" class="wbb-remove-button">${CURLANG.remove}</button>
+								</div>
+							</div>`).hide();
 
 				this.$modal.find('#wbbm-cancel,.wbbclose').click($.proxy(this.closeModal, this));
 				this.$modal.bind('click', $.proxy(function (e) {
@@ -2725,7 +2763,7 @@ wbbdebug = false;
 			};
 			$.log("wbbInsertCallback: " + command);
 			var data = this.getCodeByCommand(command, paramobj);
-			this.insertAtCursor(data);
+			this.insertAtCursor(data + "&nbsp;");
 
 			if (this.seltextID && data.indexOf(this.seltextID) != -1) {
 				var snode = this.$body.find("#" + this.seltextID)[0];
@@ -3518,7 +3556,7 @@ wbbdebug = false;
 			var $wrap = $(this.elFromString("<div>" + bbdata + "</div>"));
 			//transform smiles
 			/* $wrap.contents().filter(function() {return this.nodeType==3}).each($.proxy(smilerpl,this)).end().find("*").contents().filter(function() {return this.nodeType==3}).each($.proxy(smilerpl,this));
-
+	
 			function smilerpl(i,el) {
 				var ndata = el.data;
 				$.each(this.options.smileList,$.proxy(function(i,row) {
@@ -3702,7 +3740,7 @@ wbbdebug = false;
 				this.$body.html(this.getHTML(this.$txtArea.val()));
 				this.$txtArea.hide().removeAttr("wbbsync").val("");
 				this.$body.css("min-height", this.$txtArea.height()).show().focus();
-			} else {		
+			} else {
 				//to bbcode
 				this.$txtArea.val(this.getBBCode()).css({
 					"min-height": this.$body.height(),
@@ -3832,7 +3870,7 @@ wbbdebug = false;
 			/* $.each(this.options.rules,$.proxy(function(s,bb) {
 				$block.find(s).attr("wbbkeep",1);
 			},this));
-
+	
 			//replace div and p without last br to html()+br
 			$block.find("*[wbbkeep!='1']").each($.proxy(function(i,el) {
 				var $this = $(el);
@@ -4231,7 +4269,7 @@ wbbdebug = false;
 		printObjectInIE: function (obj) {
 			try {
 				$.log(JSON.stringify(obj));
-			} catch (e) {}
+			} catch (e) { }
 		},
 		checkFilter: function (node, filter) {
 			$.log("node: " + $(node).get(0).outerHTML + " filter: " + filter + " res: " + $(node).is(filter.toLowerCase()));
@@ -4282,61 +4320,61 @@ wbbdebug = false;
 		});
 	}
 	$.fn.wdrag = function (opt) {
-			if (!opt.scope) {
-				opt.scope = this;
+		if (!opt.scope) {
+			opt.scope = this;
+		}
+		var start = {
+			x: 0,
+			y: 0,
+			height: 0
+		};
+		var drag;
+		opt.scope.drag_mousedown = function (e) {
+			e.preventDefault();
+			start = {
+				x: e.pageX,
+				y: e.pageY,
+				height: opt.height,
+				sheight: opt.scope.$body.height()
 			}
-			var start = {
-				x: 0,
-				y: 0,
-				height: 0
-			};
-			var drag;
-			opt.scope.drag_mousedown = function (e) {
+			drag = true;
+			$(document).bind("mousemove", $.proxy(opt.scope.drag_mousemove, this));
+			$(this).addClass("drag");
+		};
+		opt.scope.drag_mouseup = function (e) {
+			if (drag === true) {
 				e.preventDefault();
-				start = {
-					x: e.pageX,
-					y: e.pageY,
-					height: opt.height,
-					sheight: opt.scope.$body.height()
-				}
-				drag = true;
-				$(document).bind("mousemove", $.proxy(opt.scope.drag_mousemove, this));
-				$(this).addClass("drag");
-			};
-			opt.scope.drag_mouseup = function (e) {
-				if (drag === true) {
-					e.preventDefault();
-					$(document).unbind("mousemove", opt.scope.drag_mousemove);
-					$(this).removeClass("drag");
-					drag = false;
-				}
-			};
-			opt.scope.drag_mousemove = function (e) {
-				e.preventDefault();
-				var axisX = 0,
-					axisY = 0;
-				if (opt.axisX) {
-					axisX = e.pageX - start.x;
-				}
-				if (opt.axisY) {
-					axisY = e.pageY - start.y;
-				}
-				if (axisY != 0) {
-					var nheight = start.sheight + axisY;
-					if (nheight > start.height && nheight <= opt.scope.options.resize_maxheight) {
-						if (opt.scope.options.bbmode == true) {
-							opt.scope.$txtArea.css((opt.scope.options.autoresize === true) ? "min-height" : "height", nheight + "px");
-						} else {
-							opt.scope.$body.css((opt.scope.options.autoresize === true) ? "min-height" : "height", nheight + "px");
-						}
+				$(document).unbind("mousemove", opt.scope.drag_mousemove);
+				$(this).removeClass("drag");
+				drag = false;
+			}
+		};
+		opt.scope.drag_mousemove = function (e) {
+			e.preventDefault();
+			var axisX = 0,
+				axisY = 0;
+			if (opt.axisX) {
+				axisX = e.pageX - start.x;
+			}
+			if (opt.axisY) {
+				axisY = e.pageY - start.y;
+			}
+			if (axisY != 0) {
+				var nheight = start.sheight + axisY;
+				if (nheight > start.height && nheight <= opt.scope.options.resize_maxheight) {
+					if (opt.scope.options.bbmode == true) {
+						opt.scope.$txtArea.css((opt.scope.options.autoresize === true) ? "min-height" : "height", nheight + "px");
+					} else {
+						opt.scope.$body.css((opt.scope.options.autoresize === true) ? "min-height" : "height", nheight + "px");
 					}
 				}
-			};
+			}
+		};
 
 
-			$(this).bind("mousedown", opt.scope.drag_mousedown);
-			$(document).bind("mouseup", $.proxy(opt.scope.drag_mouseup, this));
-		},
+		$(this).bind("mousedown", opt.scope.drag_mousedown);
+		$(document).bind("mouseup", $.proxy(opt.scope.drag_mouseup, this));
+	},
 
 		//API
 		$.fn.getDoc = function () {
@@ -4457,7 +4495,7 @@ wbbdebug = false;
 			this.data("wbb").$body.css("min-height", this.data("wbb").$txtArea.height()).show().focus();
 			this.data("wbb").options.bbmode = !this.data("wbb").options.bbmode;
 		}
-		
+
 		return true
 	}
 

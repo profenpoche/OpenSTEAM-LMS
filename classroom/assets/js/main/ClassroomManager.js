@@ -31,14 +31,23 @@ class ClassroomManager {
         this._idActivityOnAttribution = 0;
         this.setDefaultActivityData();
         this.dragulaGlobal = false;
+        this.autoScrollGlobal = false;
         this.displayMode = localStorage.getItem('classroomViewMode') != null ? localStorage.getItem('classroomViewMode') : 'card';
         this.wbbOpt = {
             allButtons : {
             },
             resize_maxheight: 354,
             autoresize: false,
-            buttons: ",bold,italic,underline,math,|,justifyleft,justifycenter,justifyright,customimageupload,link,|,quote,bullist,|,vittaiframe,cabriiframe,custompdfupload,video,peertube,vimeo,genialyiframe,gdocsiframe,answer",
+            buttons: ",fontsize,bold,italic,underline,math,table,borderlesstable,justifyleft,justifycenter,justifyright,customimageupload,myimages,link,quote,bullist,vittaiframe,cabriiframe,alliframe,custompdfupload,video,peertube,vimeo,genialyiframe,gdocsiframe,answer",
         }
+        this.myImages = [];
+        this.actualEditor = null;
+        this.tagList = [];
+        this.imagesWidth = 300;
+        this.droppable = {};
+        
+        this.excludedActivityType = [];
+        this.excludedObjectFromDashboard = [];
     }
 
     /**
@@ -108,6 +117,114 @@ class ClassroomManager {
         })
     };
 
+    openModalWithMyImages() {
+        Main.getClassroomManager().actualEditor = this;
+        pseudoModal.openModal("customizable-modal");
+        Main.getClassroomManager().displayModalWithMyImages();
+    }
+
+    displayModalWithMyImages() {
+        $('#customizable-modal-content').html("");
+        Main.getClassroomManager().getMyImages().then((myImages) => {
+            $('#customizable-modal-content').append(`<div class="text-center d-flex flex-column col-12 ">
+                <label for="range" >${i18next.t("newActivities.modals.imageSize")}</label>
+                <input class="mt-3 btn-lg" type="range" id="custom-width-assets" value="300" min="0" max="1500" step="1">
+                <input type="number" id="custom-width-assets-number" value="300" min="0" max="1500" step="1">
+                <img src="" alt="exemple" id="width-exemple-asset" class="img-fluid mx-auto mt-3" style="width: 250px;">
+            </div>
+            <div class="col-12">
+                <hr style="border-top-width: 2px;">
+            </div>`);
+
+            Main.getClassroomManager().triggerAssetsRanges();
+
+            if (myImages.length > 0) {
+                $("#width-exemple-asset").attr("src", myImages[0].src);
+                $("#width-exemple-asset").attr("alt", myImages[0].filename);
+            }
+
+            Object.entries(myImages).forEach((value, index) => {
+                if (value[1].filename) {
+                    let fileWithOutTimestamp = value[1].filename.split(".")[0].split('_').slice(1).join('_');
+                    $('#customizable-modal-content').append(`<div class="col-4 my-2 d-flex">
+                        <div class="card" style="width: 18rem;">
+                            <img src="${value[1].src}" alt="${value[1].filename}" style="height:200px; object-fit: contain;" class="img-fluid mx-auto">
+                            <div class="card-body simple-background">
+                                <h6 class="card-title">${fileWithOutTimestamp}</h6>
+                                <div class="d-flex justify-content-center flex-wrap gap-2">
+                                    <button class="btn-sm c-btn-primary mx-1 mt-2" data-i18n="manager.buttons.select" onclick="Main.getClassroomManager().selectImage('${value[1].src}', '${value[1].filename}')">Selectionner</button>
+                                    <button class="btn-sm c-btn-secondary mx-1 mt-2" data-i18n="manager.buttons.delete" onclick="Main.getClassroomManager().deleteImagesAndRefresh('${value[1].id}')">Supprimer</button>
+                                </div>
+                            </div>
+                        </div>`);
+                }
+            });
+
+            $('#customizable-modal-content').append(`<div class="text-center col-12">
+                <button class="btn c-btn-light mx-auto mt-3 btn-lg" onclick="tiActivity.cancelModal()" data-i18n="manager.buttons.cancel">Annuler</button>
+            </div>`);
+        });
+    }
+
+    selectImage(src, title) {
+        Main.getClassroomManager()._selectedAsset = document.location.origin + src;
+        const htmlcode = `<img src="${Main.getClassroomManager()._selectedAsset}" title="${title}" style="width:${Main.getClassroomManager().imagesWidth}px" class="img-fluid img-custom"/>`;
+        $(`#${Main.getClassroomManager().actualEditor.txtArea.id}`).bbcode();
+        $(`#${Main.getClassroomManager().actualEditor.txtArea.id}`).insertAtCursor(htmlcode);
+        pseudoModal.closeAllModal();
+    }
+
+    deleteImagesAndRefresh(id) {
+        Main.getClassroomManager().deleteImageById(id).then((r) => {
+            if (r.success) {
+                Main.getClassroomManager().displayModalWithMyImages();
+                displayNotification('#notif-div', "classroom.notif.imageSuccessfullyDeleted", "success");
+            }
+        });
+    }
+
+    deleteImageById(id) {
+        return new Promise(function (resolve, reject) {
+            $.ajax({
+                type: "POST",
+                dataType: "JSON",
+                url: "/routing/Routing.php?controller=upload&action=delete_image",
+                data: {
+                    id: id
+                },
+                success: function (r) {
+                    resolve(r);
+                }
+            });
+        });
+    }
+
+    triggerAssetsRanges() {
+        document.getElementById("custom-width-assets").addEventListener("input", function() {
+            let value = $("#custom-width-assets").val();
+            $("#width-exemple-asset").css("width", value + "px");
+            $("#custom-width-assets-number").val(value);
+            Main.getClassroomManager().imagesWidth = value;
+        });
+
+        document.getElementById("custom-width-assets-number").addEventListener("input", function() {
+            let value = $("#custom-width-assets-number").val();
+            $("#width-exemple-asset").css("width", value + "px");
+            $("#custom-width-assets").val(value);
+            Main.getClassroomManager().imagesWidth = value;
+        });
+    }
+    
+    returnCustomConfigWysibb(buttons, maxheight = 354, autoresize = false) {
+        return {
+            allButtons : {
+            },
+            resize_maxheight: maxheight,
+            autoresize: autoresize,
+            buttons: buttons,
+        }
+    }
+
     /**
      * Get classrooms from the user
      * Access with Main.getClassroomManager()._myClasses
@@ -132,6 +249,7 @@ class ClassroomManager {
                             }
                         }
                         container._myClasses = response;
+                        Main.getClassroomManager().countClassroomAndStudents(response);
                         onEnd();
                         resolve();
                     },
@@ -144,6 +262,19 @@ class ClassroomManager {
             // Add the current task to the tasks queue
             this._addTaskToQueue(currentTask);
         });
+    }
+
+
+    countClassroomAndStudents(data) {
+        let teacherData = {
+            classrooms: 0,
+            students: 0
+        };
+        data.forEach((classroom) => {
+            teacherData.classrooms++;
+            teacherData.students += classroom.students.length;
+        });
+        UserManager.getUser().teacherData = teacherData;
     }
 
     /**
@@ -191,7 +322,7 @@ class ClassroomManager {
     getTeacherActivities(container) {
         return new Promise((resolve, reject) => {
             let currentTask = (onEnd) => {
-                var process = function (thisInstance, res) {
+                let process = function (thisInstance, res) {
                     if (res.error_message && res.error_message !== undefined) {
                         thisInstance.errors.push(GET_PUBLIC_PROJECTS_ERROR)
                     }
@@ -205,11 +336,16 @@ class ClassroomManager {
                     url: "/routing/Routing.php?controller=activity&action=get_mine_for_classroom",
                     success: function (response) {
                         Main.getClassroomManager().getAllApps().then(res => {
-                            for (let i = 0; i < res.length; i++) {
-                                if (!foldersManager.icons.hasOwnProperty(res[i].name)) {
-                                    foldersManager.icons[res[i].name] = res[i].image;
+                            const intervalForFolders = setInterval(() => {
+                                if (typeof foldersManager !== 'undefined') {
+                                    clearInterval(intervalForFolders);
+                                    for (let i = 0; i < res.length; i++) {
+                                        if (!foldersManager.icons.hasOwnProperty(res[i].name)) {
+                                            foldersManager.icons[res[i].name] = res[i].image;
+                                        }
+                                    }
                                 }
-                            }
+                            }, 100);
                             process(container, response);
                             onEnd();
                         });
@@ -495,32 +631,6 @@ class ClassroomManager {
             });
         })
     }
-    /**
-     * @ToBeRemoved
-     * Last check October 2021
-     * 
-     * Get students list in the classroom
-     * @public
-     * @returns {Array}
-     */
-    // getUsersInClassroom(link) {
-    //     return new Promise(function (resolve, reject) {
-    //         $.ajax({
-    //             type: "POST",
-    //             url: "/routing/Routing.php?controller=classroom_link_user&action=get_by_classroom",
-    //             data: {
-    //                 "classroom": link
-    //             },
-    //             success: function (response) {
-    //                 resolve(JSON.parse(response))
-
-    //             },
-    //             error: function () {
-    //                 reject();
-    //             }
-    //         });
-    //     })
-    // }
 
     /**
      * Get general data about the user (activities to do, activities done, courses todo, courses done)
@@ -1245,8 +1355,8 @@ class ClassroomManager {
      * @example
      * const activity = activitiesManager.getActivityById('activityId')
      */
-    getActivityById(activityId) {
-        return this._allActivities.find(activity => activity.id === activityId)
+    getLocalActivityById(activityId) {
+        return this._myTeacherActivities.find(activity => activity.id === activityId)
     }
 
 
@@ -1271,8 +1381,6 @@ class ClassroomManager {
         })
     };
 
-    //get one app by id
-    // write the commentaries
 
     /**
      * @public
@@ -1301,8 +1409,18 @@ class ClassroomManager {
         })
     }
 
-    // create a new activity
-    createNewActivity($title, $type, $content, $solution, $tolerance, $autocorrect, $folder) {
+    /* 
+    * @param {string} $title
+    * @param {string} $type
+    * @param {string} $content
+    * @param {string} $solution
+    * @param {string} $tolerance
+    * @param {string} $autocorrect
+    * @param {string} $folder
+    * @param {string} $tags
+    * @returns {Promise}
+    */
+    createNewActivity($title, $type, $content, $solution, $tolerance, $autocorrect, $folder, $tags = null) {
         return new Promise(function (resolve, reject) {
             $.ajax({
                 type: "POST",
@@ -1315,7 +1433,8 @@ class ClassroomManager {
                     'solution' : $solution,
                     'tolerance' : $tolerance,
                     'autocorrect' : $autocorrect,
-                    'folder' : $folder
+                    'folder' : $folder,
+                    'tags': $tags
                 },
                 success: function (response) {
                     resolve(response);
@@ -1327,8 +1446,21 @@ class ClassroomManager {
         })
     }
 
-    // update an activity
-    updateActivity($id, $title, $type, $content, $solution, $tolerance, $autocorrect) {
+    /**
+     * @param {string} $id
+     * @param {string} $title
+     * @param {string} $type
+     * @param {string} $content
+     * @param {string} $solution
+     * @param {string} $tolerance
+     * @param {string} $autocorrect
+     * @param {string} $tags
+     * @returns {Promise}
+     * @memberof ActivitiesManager
+     * @description Update an activity
+     * @example
+    */
+    updateActivity($id, $title, $type, $content, $solution, $tolerance, $autocorrect, tags = null) {
         return new Promise(function (resolve, reject) {
             $.ajax({
                 type: "POST",
@@ -1341,7 +1473,8 @@ class ClassroomManager {
                     'content' : $content,
                     'solution' : $solution,
                     'tolerance' : $tolerance,
-                    'autocorrect' : $autocorrect
+                    'autocorrect' : $autocorrect,
+                    'tags': tags
                 },
                 success: function (response) {
                     resolve(response);
@@ -1354,8 +1487,11 @@ class ClassroomManager {
     }
 
 
-    // delete an activity
 
+    /* 
+    * @param {string} $id
+    * @returns {Promise}
+    */
     deleteActivity($id) {
         return new Promise(function (resolve, reject) {
             $.ajax({
@@ -1478,6 +1614,39 @@ class ClassroomManager {
         });
     }
 
+
+    getMyImages() {
+        return new Promise(function (resolve, reject) {
+            $.ajax({
+                type: "POST",
+                dataType: "JSON",
+                url: "/routing/Routing.php?controller=upload&action=get_all_my_images",
+                success: function (r) {
+                    resolve(r);
+                }
+            });
+        });
+    }
+
+    /**
+     * Get all tags
+     * */
+    getAllTags() {
+        return new Promise(function (resolve, reject) {
+            $.ajax({
+                type: "POST",
+                dataType: "JSON",
+                url: "/routing/Routing.php?controller=newActivities&action=get_all_tags",
+                success: function (response) {
+                    resolve(response)
+                },
+                error: function () {
+                    reject();
+                }
+            });
+        })
+    }
+
     setDefaultActivityData() {
         this._createActivity = {
             function: 'create',
@@ -1500,6 +1669,7 @@ class ClassroomManager {
                 }
             }, 
             type: '', 
+            isLti: false,
             solution: [],
             tolerance: ''
         }
@@ -1507,6 +1677,18 @@ class ClassroomManager {
         if (globalTitle != null) {
             document.querySelector('#global_title').value = '';
         } 
+    }
+
+    setActivityIsLti(boolean) {
+        const paramType = typeof boolean;
+        if (paramType !== 'boolean') {
+            return console.error(`The argument must be a boolean: ${paramType} provided!`);
+        }
+        this._createActivity.isLti = boolean;
+    }
+
+    getActivityIsLti() {
+        return this._createActivity.isLti;
     }
 
     /**
@@ -1544,6 +1726,8 @@ class ClassroomManager {
         }
         return false;
     }
+
+
 
 }
 

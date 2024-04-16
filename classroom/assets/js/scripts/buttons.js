@@ -112,7 +112,9 @@ if (/[0-9a-z]{13}/.test($_GET('option'))) {
 
 $('.classroom-navbar-button').click(function () {
     try {
-        pseudoModal.closeAllModal()
+        if (!new ActivityTracker().getIsCheckingLti()) {
+            pseudoModal.closeAllModal();
+        }
     } catch (e) {
         console.error('pseudoModal is not defined')
     }
@@ -219,6 +221,35 @@ function backToClassroomFromCode() {
     }
 }
 
+function askQuitLtiWithoutSaving() {
+    return new Promise((resolve, reject) => {
+        const modalElt = document.querySelector('#quit-lti-activity-modal'),
+        modalCloseButtonElt = modalElt.querySelector('.vitta-modal-exit-btn'),
+        modalYesButtonElt = document.querySelector('#quit-lti-yes-button'),
+        modalNoButtonElt = document.querySelector('#quit-lti-no-button');
+        pseudoModal.openModal('quit-lti-activity-modal');
+        new ActivityTracker().setIsCheckingLti(true);
+        const removeListeners = () => {
+            modalYesButtonElt.removeEventListener('click', quitCallback);
+            modalNoButtonElt.removeEventListener('click', stayCallback);
+            modalCloseButtonElt.removeEventListener('click', stayCallback);
+            pseudoModal.closeModal('quit-lti-activity-modal');
+            new ActivityTracker().setIsCheckingLti(false);
+        }
+        const quitCallback = () => { 
+            resolve(true); 
+            removeListeners();
+        };
+        const stayCallback = () => { 
+            resolve(false); 
+            removeListeners();
+        };
+        modalYesButtonElt.addEventListener('click', quitCallback);
+        modalNoButtonElt.addEventListener('click', stayCallback);
+        modalCloseButtonElt.addEventListener('click', stayCallback);
+    });
+}
+
 /**
  * Navigate trough panels
  * @param {string} id - The destination panel
@@ -228,29 +259,55 @@ function backToClassroomFromCode() {
  * @param {boolean} skipConfirm - If set to true, the exit confirmation prompt won't be displayed
  * @param {boolean} isOnpopstate - If set to true, the current navigation won't be saved in history (dedicated to onpopstate events)
  */
-function navigatePanel(id, idNav, option = "", interface = '', isOnpopstate = false) {
+async function navigatePanel(id, idNav, option = "", interface = '', isOnpopstate = false) {
+    // If we are on the activity panel, in LTI context and the LTI resource isn't up to date
+    const isActivityPanel = $_GET('panel') === 'classroom-dashboard-activity-panel',
+    isNewActivityPanel = $_GET('panel') === 'classroom-dashboard-classes-new-activity';
+
+    const isLtiActivity = isActivityPanel && Activity.isLti,
+    isLtiNewActivity = isNewActivityPanel && Main.getClassroomManager().getActivityIsLti(),
+    isStudentLtiActivity = UserManager.getUser().isRegular 
+        ? false
+        : Activity.activity
+            ? isActivityPanel && Activity.activity.isLti
+            : false;
+
+    const isLti = isLtiActivity || isLtiNewActivity || isStudentLtiActivity;
+
+    if (isLti && !(new ActivityTracker().getIsUpToDate())) {
+        const quitLti = await askQuitLtiWithoutSaving();
+        if (!quitLti) return;
+    }
+
+    breadcrumbManager.navigatePanelBreadcrumb(idNav, id, $_GET('nav'), $_GET('panel'));
     // If there is any working activity tracker, send the tracking data and stop it
     if (typeof Main.activityTracker != 'undefined' && Main.activityTracker.getIsTracking()) {
         Main.activityTracker.saveTimePassed();
         Main.activityTracker.stopActivityTracker();
     }
+
     $('.classroom-navbar-button').removeClass("active");
     $('.dashboard-block').hide();
     $('#' + id).show();
     $('#' + idNav).addClass("active");
+
     if (id == 'resource-center-classroom') {
         $('#classroom-dashboard-activities-panel-library-teacher').html('<iframe id="resource-center-classroom" src="/learn/?use=classroom" frameborder="0" style="height:80vh;width:80vw"></iframe>');
     }
+
     ClassroomSettings.lastPage.unshift({
         history: id,
         navbar: idNav
     });
+
     if ($_GET('panel') == 'classroom-dashboard-activity-panel' && document.querySelector('#activity-content') != null) {
         document.querySelector('#activity-content').innerHTML = '';
     }
-    let state = {};
-    var title = '';
-    let endUrl = idNav;
+
+    let state = {},
+        title = '',
+        endUrl = idNav;
+
     if (option != "") {
         endUrl += '&option=' + option;
     }
@@ -265,28 +322,6 @@ function navigatePanel(id, idNav, option = "", interface = '', isOnpopstate = fa
     if (displayPanel[formateId]) {
         displayPanel[formateId](option);
     }
-    // Breadcrumb management
-    let breadcrumbElt = document.getElementById('breadcrumb');
-    let innerBreadCrumbHtml = '';
-    let currentBreadcrumbStructure = findCurrentPanelInTreeStructure(id, ClassroomSettings.treeStructure);
-    for (let i = 0; i < currentBreadcrumbStructure.length - 1; i++) {
-        // Define the last element of the breadcrumb
-        if (i == currentBreadcrumbStructure.length - 2) {
-            if ($_GET("panel") == "classroom-dashboard-activity-panel") {
-                if (UserManager.getUser().isRegular) {
-                    innerBreadCrumbHtml += `<button class="btn c-btn-outline-primary" onclick="navigatePanel('classroom-dashboard-activities-panel-teacher', 'dashboard-activities-teacher')"><span data-i18n="[html]classroom.ids.${currentBreadcrumbStructure[i]}">${currentBreadcrumbStructure[i]}</span></button>`;
-                } else {
-                    innerBreadCrumbHtml += `<button class="btn c-btn-outline-primary" onclick="navigatePanel('classroom-dashboard-activities-panel', 'dashboard-activities')"><span data-i18n="[html]classroom.ids.${currentBreadcrumbStructure[i]}">${currentBreadcrumbStructure[i]}</span></button>`;
-                }
-            } else {
-                innerBreadCrumbHtml += `<button class="btn c-btn-outline-primary" onclick="navigatePanel('${currentBreadcrumbStructure[i]}', '${idNav}')"><span data-i18n="[html]classroom.ids.${currentBreadcrumbStructure[i]}">${currentBreadcrumbStructure[i]}</span></button>`;
-            }
-        } else {
-            innerBreadCrumbHtml += `<button class="btn c-btn-outline-primary last" onclick="navigatePanel('${currentBreadcrumbStructure[i]}', '${idNav}')"><span data-i18n="[html]classroom.ids.${currentBreadcrumbStructure[i]}">${currentBreadcrumbStructure[i]}</span><i class="fas fa-chevron-right ml-2"></i></button>`;
-        }
-    }
-    breadcrumbElt.innerHTML = innerBreadCrumbHtml;
-    $('#breadcrumb').localize();
 
     $('.tooltip').remove()
     if (typeof Main.leaderline !== 'undefined') Main.leaderline.hide();
@@ -295,7 +330,6 @@ function navigatePanel(id, idNav, option = "", interface = '', isOnpopstate = fa
     if (id == 'classroom-dashboard-activities-panel-teacher' && idNav == 'dashboard-activities-teacher') {
         foldersManager.goToFolder(foldersManager.actualFolder);
     }
-
 }
 
 /**
@@ -306,38 +340,6 @@ window.onpopstate = () => {
         navigatePanel($_GET('panel'), $_GET('nav'), option = $_GET('option'), interface = $_GET('interface'), true);
     }
 };
-
-/**
- * Browse the tree structure to find the path to the current panel
- * @param {string} searchedPanel - The current panel id
- * @param {object} treeStructure - The tree structure (ClassroomSettings.treeStructure)
- * @param {string} currentPanel - Don't give any argument to this parameter (it's used by the recursion)
- * @param {array} history - Don't give any argument to this parameter (it's used by the recursion)
- * @returns {array} - Returns the array containing the path to the current panel
- */
-function findCurrentPanelInTreeStructure(searchedPanel, treeStructure = null, currentPanel = null, history = []) {
-    // Init
-    if (currentPanel == null) {
-        currentPanel = treeStructure;
-    }
-
-    // Loop with recursivity
-    for (let child in currentPanel) {
-        history.push(child);
-        if (searchedPanel == child) {
-            return history;
-        } else {
-            if (typeof (currentPanel[child]) === 'object') {
-                let result = findCurrentPanelInTreeStructure(searchedPanel, currentPanel, currentPanel[child], history);
-                if (result != false) {
-                    return result;
-                }
-            }
-            history.pop();
-        }
-    }
-    return false;
-}
 
 // Add activity modal (Classroom management) -> Resource Bank button
 function goToResourceBank() {
@@ -351,14 +353,6 @@ function goToActivityPanel() {
     navigatePanel('classroom-dashboard-activities-panel-teacher', 'dashboard-activities-teacher');
 }
 
-// Add activity modal (Classroom management) -> Resource Bank button
-function goToCreateActivityPanel() {
-    Main.getClassroomManager().getAllApps().then((apps) => {
-        activitiesCreation(apps);
-        pseudoModal.closeAllModal();
-        navigatePanel('classroom-dashboard-proactivities-panel-teacher', 'dashboard-activities-teacher');
-    })
-}
 
 //prof-->demoStudent
 function modeApprenant() {
@@ -433,11 +427,10 @@ window.addEventListener('storage', () => {
                 for (let i = 0; i < response.length; i++) {
                     addTeacherActivityInList(response[i])
                 }
-                teacherActivitiesDisplay()
+                processDisplay();
                 displayNotification('#notif-div', "classroom.notif.addActivities", "success")
             })
         } else {
-            /* i18next.t("classroom.notif.saveProject") */
             Main.getClassroomManager().addActivity(Activity).then(function (response) {
                 if (response.errors) {
                     for (let error in response.errors) {
@@ -445,7 +438,7 @@ window.addEventListener('storage', () => {
                     }
                 } else {
                     addTeacherActivityInList(response);
-                    teacherActivitiesDisplay();
+                    processDisplay();
                     displayNotification('#notif-div', "classroom.notif.addActivity", "success");
                 }
             })
@@ -514,7 +507,7 @@ $('.open-ide').click(function () {
 $('body').on('click', '.sandbox-card', function () {
     if (!$(this).find("i:hover").length && !$(this).find(".dropdown-menu:hover").length) {
         ClassroomSettings.project = $(this).attr('data-href').replace(/.+link=([0-9a-z]{13}).+/, '$1')
-        ClassroomSettings.interface = $(this).attr('data-href').replace(/.+(arduino|python|microbit|adacraft|stm32|esp32).+/, '$1')
+        ClassroomSettings.interface = $(this).attr('data-href').replace(/.+(arduino|python|microbit|adacraft|wb55|esp32).+/, '$1')
         if (UserManager.getUser().isRegular) {
             navigatePanel('classroom-dashboard-ide-panel', 'dashboard-sandbox-teacher', ClassroomSettings.project, ClassroomSettings.interface)
         } else {
@@ -526,7 +519,7 @@ $('body').on('click', '.sandbox-card', function () {
 $('body').on('click', '.modal-teacherSandbox-delete', function () {
     let confirm = window.confirm("Etes vous sur de vouloir supprimer le projet?")
     if (confirm) {
-        let link = $(this).parent().parent().parent().parent().attr('data-href').replace(/\\(arduino|microbit|python|adacraft|stm32|esp32)\\\?link=([0-9a-f]{13})/, "$2")
+        let link = $(this).parent().parent().parent().parent().attr('data-href').replace(/\\(arduino|microbit|python|adacraft|wb55|esp32)\\\?link=([0-9a-f]{13})/, "$2")
         Main.getClassroomManager().deleteProject(link).then(function (project) {
             deleteSandboxInList(project.link)
             sandboxDisplay()
@@ -601,7 +594,7 @@ $('body').on('change', '.list-students-classroom', function () {
 $('body').on('click', '.modal-teacherSandbox-duplicate', function () {
     let link = $(this).parent().parent().parent().parent().attr('data-href')
     link = link.replace(/.+link=([0-9a-f]{13}).+/, '$1')
-    ClassroomSettings.interface = $(this).parent().parent().parent().parent().attr('data-href').replace(/.+(arduino|python|microbit|adacraft|stm32|esp32).+/, '$1')
+    ClassroomSettings.interface = $(this).parent().parent().parent().parent().attr('data-href').replace(/.+(arduino|python|microbit|adacraft|wb55|esp32).+/, '$1')
     Main.getClassroomManager().duplicateProject(link).then(function (project) {
         ClassroomSettings.project = project.link
         addSandboxInList(project)
@@ -682,18 +675,26 @@ function studentActivitiesDisplay() {
 
 
     Main.getClassroomManager()._myCourses.forEach(course => {
-        if (course.courseState == 0 && course.activities[0].response == null) {
-            let number = $('.section-new .resource-number').html();
-            $('.section-new .resource-number').html(parseInt(number) + 1)
-            $('#new-activities-list').append(courseItem(course, "newActivities"));
-        } else if ((course.courseState == 0 && course.activities[0].response != null) || course.courseState > 0 && course.courseState != 999) {
-            let number = $('.section-saved .resource-number').html();
-            $('.section-saved .resource-number').html(parseInt(number) + 1)
-            $('#saved-activities-list').append(courseItem(course, "currentActivities"));
-        } else if (course.courseState == 999) {
+
+        let saveCourse = false;
+        course.activities.forEach(a => {
+            if (a.correction > 0 && a.activity.type != 'reading' && course.format == 1) {
+                saveCourse = true;
+            }
+        });
+
+        if (course.courseState == 999) {
             let number = $('.section-done .resource-number').html();
             $('.section-done .resource-number').html(parseInt(number) + 1);
             $('#done-activities-list').append(courseItem(course, "doneActivities"));
+        } else if ((course.courseState == 0 && course.activities[0].response != null) || course.courseState > 0 && course.courseState != 999 && saveCourse) {
+            let number = $('.section-saved .resource-number').html();
+            $('.section-saved .resource-number').html(parseInt(number) + 1)
+            $('#saved-activities-list').append(courseItem(course, "currentActivities"));
+        } else if (course.courseState == 0 || !saveCourse) {
+            let number = $('.section-new .resource-number').html();
+            $('.section-new .resource-number').html(parseInt(number) + 1)
+            $('#new-activities-list').append(courseItem(course, "newActivities"));
         }
     });
 
@@ -713,7 +714,7 @@ function studentActivitiesDisplay() {
         $('#bilan-student').show();
     }
 
-    $('[data-toggle="tooltip"]').tooltip();
+    $('[data-bs-toggle="tooltip"]').tooltip();
 }
 
 function manageToggleForStudentPanel() {
@@ -840,7 +841,7 @@ function classroomsDisplay() {
     });
 }
 
-function teacherActivitiesDisplay(list = Main.getClassroomManager()._myTeacherActivities, keyword = false, asc = false) {
+function teacherActivitiesDisplay(list = Main.getClassroomManager()._myTeacherActivities, keyword = false, asc = false, excludedObjects = [], tags = []) {
     // Keep the list sorted
     let selectedSort = $('#filter-activity-select').val(),
         sortedList = "";
@@ -862,15 +863,17 @@ function teacherActivitiesDisplay(list = Main.getClassroomManager()._myTeacherAc
 
     // Add sorting to the folders
     let foldersZ = keyword ? filterTeacherFolderInList(keyword, asc) : foldersManager.userFolders;
-    foldersZ.forEach(folder => {
-        if (folder.parentFolder == null && foldersManager.actualFolder == null) {
-            $('#list-activities-teacher').append(teacherFolder(folder, displayStyle));
-        } else if (folder.parentFolder != null) {
-            if (folder.parentFolder.id == foldersManager.actualFolder) {
+    if (!excludedObjects.includes("folders")){
+        foldersZ.forEach(folder => {
+            if (folder.parentFolder == null && foldersManager.actualFolder == null) {
                 $('#list-activities-teacher').append(teacherFolder(folder, displayStyle));
+            } else if (folder.parentFolder != null) {
+                if (folder.parentFolder.id == foldersManager.actualFolder) {
+                    $('#list-activities-teacher').append(teacherFolder(folder, displayStyle));
+                }
             }
-        }
-    });
+        });
+    }
     
     sortedList.forEach(element => {
         if (element.folder == null && foldersManager.actualFolder == null) {
@@ -882,18 +885,20 @@ function teacherActivitiesDisplay(list = Main.getClassroomManager()._myTeacherAc
         }
     });
 
-    coursesManager.myCourses.forEach(course => {
-        if (course.folder == null && foldersManager.actualFolder == null) {
-            $('#list-activities-teacher').append(coursesManager.teacherCourseItem(course, displayStyle)); 
-        } else if (course.folder != null) {
-            if (course.folder.id == foldersManager.actualFolder) {
+    if (!excludedObjects.includes("courses")) {
+        coursesManager.myCourses.forEach(course => {
+            if (course.folder == null && foldersManager.actualFolder == null) {
                 $('#list-activities-teacher').append(coursesManager.teacherCourseItem(course, displayStyle)); 
+            } else if (course.folder != null) {
+                if (course.folder.id == foldersManager.actualFolder) {
+                    $('#list-activities-teacher').append(coursesManager.teacherCourseItem(course, displayStyle)); 
+                }
             }
-        }
-    });
+        });
+    }
 
     foldersManager.dragulaInitObjects();
-    $('[data-toggle="tooltip"]').tooltip();
+    $('[data-bs-toggle="tooltip"]').tooltip();
 }
 
 
@@ -946,7 +951,8 @@ function toggleBlockClass() {
 function formatDay(da) {
     let d = new Date(da.date)
     let translatedMonth = i18next.t("classroom.activities.month." + parseInt(d.getMonth() + 1) );
-    return d.getDate() + " " + (translatedMonth) + " " + d.getFullYear();
+    let numericMonth = d.getMonth() + 1 < 10 ? '0' + (d.getMonth() + 1) : d.getMonth() + 1;
+    return d.getDate() + "." + numericMonth + "." + d.getFullYear();
 }
 
 
@@ -1058,16 +1064,16 @@ $('#create_group_manager').click(function () {
             <label class="form-check-label" for="groupe_create_end_date"><i class="far fa-calendar-alt"></i>  ${i18next.t('classroom.activities.form.dateEnd')}</label>
             <input type="date" id="groupe_create_end_date" name="trip-start" max="2100-12-31">
 
-            <label class="form-check-label" data-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxStudentsPerTeachers')}" for="groupe_create_max_students_per_teachers"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.studentsPerTeacher')}</label>
+            <label class="form-check-label" data-bs-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxStudentsPerTeachers')}" for="groupe_create_max_students_per_teachers"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.studentsPerTeacher')}</label>
             <input type="number" id="groupe_create_max_students_per_teachers" value="${mainManager.getmanagerManager()._defaultRestrictions[1].restrictions.maxStudentsPerTeacher}">
 
-            <label class="form-check-label" data-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxStudentsPerGroups')}" for="groupe_create_max_students_per_groups"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.studentsPerGroup')}</label>
+            <label class="form-check-label" data-bs-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxStudentsPerGroups')}" for="groupe_create_max_students_per_groups"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.studentsPerGroup')}</label>
             <input type="number" id="groupe_create_max_students_per_groups" value="${mainManager.getmanagerManager()._defaultRestrictions[1].restrictions.maxStudents}">
 
-            <label class="form-check-label" data-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxTeachers')}" for="groupe_create_max_teachers_per_groups"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.teachersPerGroup')}</label>
+            <label class="form-check-label" data-bs-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxTeachers')}" for="groupe_create_max_teachers_per_groups"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.teachersPerGroup')}</label>
             <input type="number" id="groupe_create_max_teachers_per_groups" value="${mainManager.getmanagerManager()._defaultRestrictions[1].restrictions.maxTeachers}">
             
-            <label class="form-check-label" data-toggle="tooltip" title="" for="groupe_create_max_class_per_teachers"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.classroomPerTeacher')}</label>
+            <label class="form-check-label" data-bs-toggle="tooltip" title="" for="groupe_create_max_class_per_teachers"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.classroomPerTeacher')}</label>
             <input type="number" id="groupe_create_max_class_per_teachers" value="${mainManager.getmanagerManager()._defaultRestrictions[1].restrictions.maxClassroomsPerTeacher}">
             
             </div>`);
@@ -1151,16 +1157,16 @@ function showupdateGroupModal(id) {
             <label class="form-check-label" for="end_date"><i class="far fa-calendar-alt"></i>  ${i18next.t('classroom.activities.form.dateEnd')}</label>
             <input type="date" id="end_date" name="trip-start" value="${dateEnd}" max="2100-12-31">
 
-            <label class="form-check-label" data-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxStudentsPerTeachers')}" for="max_students_per_teachers"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.studentsPerTeacher')}</label>
+            <label class="form-check-label" data-bs-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxStudentsPerTeachers')}" for="max_students_per_teachers"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.studentsPerTeacher')}</label>
             <input type="number" id="max_students_per_teachers" value="${maxStudentsPerTeachers}">
 
-            <label class="form-check-label" data-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxStudentsPerGroups')}" for="max_students_per_groups"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.studentsPerGroup')}</label>
+            <label class="form-check-label" data-bs-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxStudentsPerGroups')}" for="max_students_per_groups"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.studentsPerGroup')}</label>
             <input type="number" id="max_students_per_groups" value="${maxStudents}">
 
-            <label class="form-check-label" data-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxTeachers')}" for="max_teachers_per_groups"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.teachersPerGroup')}</label>
+            <label class="form-check-label" data-bs-toggle="tooltip" title="${i18next.t('manager.apps.infoMaxTeachers')}" for="max_teachers_per_groups"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.teachersPerGroup')}</label>
             <input type="number" id="max_teachers_per_groups" value="${maxTeachers}">
 
-            <label class="form-check-label" data-toggle="tooltip" title="" for="max_class_per_teachers"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.classroomPerTeacher')}</label>
+            <label class="form-check-label" data-bs-toggle="tooltip" title="" for="max_class_per_teachers"><i class="fas fa-user-alt"></i>  ${i18next.t('manager.group.classroomPerTeacher')}</label>
             <input type="number" id="max_class_per_teachers" value="${maxClassroomPerTeachers}">
             </div>`);
         $('#upd_group_link').val(url);
@@ -1377,7 +1383,7 @@ function addGroupmanager() {
                     </div>
                     <select class="form-control" id="u_group${numberOfAddedGroup}">
                     </select>
-                    <button class="btn btn-danger ml-1" onclick="deleteGroupFromCreate(${numberOfAddedGroup})">Supprimer</button>
+                    <button class="btn btn-danger ms-1" onclick="deleteGroupFromCreate(${numberOfAddedGroup})">Supprimer</button>
                 </div>`;
     $('#group_add_sa').append(HtmlToAdd);
 
@@ -1736,7 +1742,7 @@ function updateAddGroupmanager() {
                     </div>
                     <select class="form-control" id="update_u_group${nextGroup}">
                     </select>
-                    <button class="btn btn-danger ml-1" onclick="deleteGroupFromUpdate(${nextGroup})">Supprimer</button>
+                    <button class="btn btn-danger ms-1" onclick="deleteGroupFromUpdate(${nextGroup})">Supprimer</button>
                 </div>`;
     $("#update_actualgroup_sa").append(group);
     const item_id = 'update_u_group' + nextGroup;
@@ -3065,7 +3071,11 @@ function persistUpdateApp() {
                 displayNotification('#notif-div', "manager.apps.updateSuccess", "success");
                 closeModalAndCleanInput(true);
             } else {
-                displayNotification('#notif-div', "manager.account.missingData", "error");
+                if (response.message == "application with the same name already exist") {
+                    displayNotification('#notif-div', "manager.apps.nameAlreadyExist", "error");
+                } else {
+                    displayNotification('#notif-div', "manager.account.missingData", "error");
+                } 
             }
         })
     }
@@ -3242,7 +3252,7 @@ function updateDefaultUsersLimitation() {
     mainManager.getmanagerManager().getDefaultUsersRestrictions().then((response) => {
         pseudoModal.openModal('update-default-restrictions-manager');
         Object.keys(response.restrictions).forEach(function (key) {
-            html += `<div class="form-row mt-1 c-secondary-form">`
+            html += `<div class="row mt-1 c-secondary-form">`
             html += `<div class="col-md">`
             html += `<label for="default-users-restrictions-value">${i18next.t(`manager.table.${key}`)}</label>`;
             html += `<input type="number" class="form-control" id="default-users-restrictions-value-${key}" value="${response.restrictions[key]}">`;
@@ -3261,7 +3271,7 @@ function updateDefaultGroupsLimitation() {
     mainManager.getmanagerManager().getDefaultGroupsRestrictions().then((response) => {
         pseudoModal.openModal('update-default-restrictions-manager');
         Object.keys(response.restrictions).forEach(function (key) {
-            html += `<div class="form-row mt-1 c-secondary-form">`
+            html += `<div class="row mt-1 c-secondary-form">`
             html += `<div class="col-md">`
             html += `<label for="default-groups-restrictions-value-${key}">${i18next.t(`manager.table.${key}`)}</label>`;
             html += `<input type="number" class="form-control" id="default-groups-restrictions-value-${key}" value="${response.restrictions[key]}">`;
@@ -3285,7 +3295,7 @@ function updateDefaultActivitiesLimitation() {
         html += `<button class="btn c-btn-primary my-3 btn" onclick="addDefaultActivitiesRestriction()">${i18next.t(`manager.defaultRestrictions.add`)}</button>`;
         Object.keys(response.restrictions).forEach(function (key) {
             allActualType.push(key);
-            html += `<div class="form-row mt-1 c-secondary-form">`
+            html += `<div class="row mt-1 c-secondary-form">`
             html += `<div class="col-md">`
             html += `<label for="default-activity-restriction-type-${key}">${i18next.t('manager.defaultRestrictions.type')}</label>`;
             html += `<input type="text" class="form-control" id="default-activity-restriction-type-${key}" value="${key}">`;
@@ -3468,6 +3478,10 @@ function setCaret(contentId, id) {
                 childNote = el.childNodes[i];
             }
         }
+    }
+
+    if (childNote != Object) {
+        return;
     }
 
     range.setStart(childNote, 1)

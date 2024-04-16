@@ -16,7 +16,6 @@ function createActivity(link = null, id = null) {
         Main.getClassroomManager().duplicateActivity(id).then(function (response) {
             if (response.success == true) {
                 displayNotification('#notif-div', "classroom.notif.activityDuplicated", "success", `'{"activityName": "${activityTitle}"}'`);
-                teacherActivitiesDisplay();
                 DisplayActivities();
             }
         })
@@ -35,8 +34,9 @@ function integrateProject(link) {
 
 function showExercicePanel() {
     Main.getClassroomManager().getAllApps().then((apps) => {
-        activitiesCreation(apps);
         navigatePanel('classroom-dashboard-proactivities-panel-teacher', 'dashboard-activities-teacher');
+        activitiesCreation(apps);
+        pseudoModal.closeAllModal();
     })
 }
 
@@ -89,7 +89,7 @@ function persistDeleteActivity() {
         Main.getClassroomManager().deleteActivity(ClassroomSettings.activity).then(function (activity) {
             displayNotification('#notif-div', "classroom.notif.activityDeleted", "success", `'{"activityName": "${activityTitle}"}'`);
             deleteTeacherActivityInList(activity.id);
-            teacherActivitiesDisplay();
+            //teacherActivitiesDisplay();
             DisplayActivities();
             pseudoModal.closeModal('delete-activity-modal');
             $('#validation-delete-activity').val("");
@@ -147,7 +147,7 @@ function activityModify(id, rename = false) {
     $('#activity-form-title').val('')
     $('.wysibb-text-editor').html('')
 
-    Main.getClassroomManager().getActivity(ClassroomSettings.activity).then((activity) => {
+    Main.getClassroomManager().getActivity(ClassroomSettings.activity).then((activity) => {     
         if (activity.type != "") {
             manageUpdateByType(activity, rename);
         } else {
@@ -161,6 +161,13 @@ function activityModify(id, rename = false) {
 
 function manageUpdateByType(activity, rename = false) {
     setTextArea();
+
+    if (activity.hasOwnProperty('tags')) {
+        manageTagList(activity.tags);
+    } else {
+        manageTagList([]);
+    }
+    
     const contentForwardButtonElt = document.getElementById('content-forward-button');
     contentForwardButtonElt.style.display = 'inline-block';
 
@@ -217,7 +224,7 @@ function attributeActivity(id, ref = null) {
 
 
 
-function undoAttributeActivity(ref,title,classroomId) {
+function undoAttributeActivity(ref,classroomId) {
     Main.getClassroomManager().undoAttributeActivity(ref,classroomId).then(function (result) {
         Main.getClassroomManager().getClasses(Main.getClassroomManager()).then(()=>{
             displayNotification('#notif-div', "classroom.notif.attributeActivityUndone", "success");
@@ -328,7 +335,8 @@ $('.new-activity-panel2').click(function () {
                 displayNotification('#notif-div', "classroom.notif.activityCreated", "success", `'{"activityTitle": "${activity.title}"}'`);
                 navigatePanel('classroom-dashboard-new-activity-panel2', 'dashboard-activities-teacher', ClassroomSettings.activity);
                 addTeacherActivityInList(activity);
-                teacherActivitiesDisplay();
+                //teacherActivitiesDisplay();
+                processDisplay();
                 ClassroomSettings.activityInWriting = false;
             }
         });
@@ -351,7 +359,8 @@ $('.new-activity-panel2').click(function () {
 
 function DisplayActivities() {
     Main.getClassroomManager().getTeacherActivities(Main.getClassroomManager()).then(function () {
-        teacherActivitiesDisplay()
+        //teacherActivitiesDisplay()
+        processDisplay();
         ClassroomSettings.activityInWriting = false
     })
 }

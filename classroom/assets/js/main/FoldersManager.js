@@ -9,41 +9,47 @@ class FoldersManager {
         this.viewModal = ["#create-folder-manager", "#delete-folder-manager", "#update-folder-manager"];
         this.actualFolder = null;
         this.treeFolder = $("#breadcrumb");
-        this.dragula = null;
         this.parent = null;
         this.objectToMove = null;
         this.objectId = null;
         this.isSeek = false;
         this.icons = {}
+        this.lastElementOver = null;
+        this.lastElementDragged = null;
     }
 
     init() {
-        this.dragula = dragula();
         this.getAllUserFolders().then(res => {
             this.userFolders = res;
-            this.dragulaInitObjects();
-        })
+        });
 
         $('#dashboard-activities-teacher').on('click', () => {
             this.resetTreeFolders();
             if ($_GET('panel') == "classroom-dashboard-activities-panel-teacher") {
                 this.createTreeFolders();
             }
-        })
+        });
 
         $('body').on('click', '.folder-card', function () {
             if (!$(this).find("i:hover").length && !$(this).find(".dropdown-menu:hover").length) {
                 let id = $(this).attr('data-id');
                 foldersManager.openFolder(id);
             }
-        })
+        });
 
         $('body').on('click', '.folder-list', function () {
             if (!$(this).find("i:hover").length && !$(this).find(".dropdown-menu:hover").length) {
                 let id = $(this).attr('data-id');
                 foldersManager.openFolder(id);
             }
-        })
+        });
+
+        let showType = localStorage.getItem('classroomViewMode') ? localStorage.getItem('classroomViewMode') : "card";
+        if (showType == "list") {
+            $("#switcherCard").addClass("half-opacity");
+        } else {
+            $("#switcherList").addClass("half-opacity");
+        }
     }
 
 
@@ -52,7 +58,7 @@ class FoldersManager {
         pseudoModal.openModal("folder-manager-modal");
         $("#create-folder-manager").show();
     }
-    
+
     persistCreateFolder() {
         let name = $("#folder_create_name").val(),
             parent = this.actualFolder;
@@ -73,9 +79,9 @@ class FoldersManager {
             })
         } else {
             displayNotification('#notif-div', "classroom.activities.foldersMessages.errorLenght", "error");
-        } 
+        }
     }
-    
+
     persistDeleteFolder() {
         let id = this.actualFolder,
             parent = this.getFolderById(this.actualFolder).parentFolder;
@@ -98,11 +104,11 @@ class FoldersManager {
             displayNotification('#notif-div', "manager.input.writeDelete", "error");
         }
     }
-    
+
     persistUpdateFolder() {
         let id = this.actualFolder,
             name = $("#folder_update_name").val();
-            
+
         this.updateFolderById(id, name).then(res => {
             if (!res.hasOwnProperty("error")) {
                 this.replaceFolderData(res);
@@ -114,7 +120,7 @@ class FoldersManager {
             }
         })
     }
-    
+
     deleteFolder(folderId) {
         this.resetInputs();
         this.actualFolder = folderId;
@@ -192,28 +198,42 @@ class FoldersManager {
             this.resetTreeFolders();
         }
 
-        let breadCrumbFolderItems = document.querySelectorAll(".folder-breadcrumb-item"),
-            alreadyExist = false;
+        let alreadyExist = this.returnIfFolderExist(folder.id);
 
-        breadCrumbFolderItems.forEach(e => {
-            if (e.dataset.id == folder.id) {
-                alreadyExist = true;
-            }
-        });
-        
         if (!alreadyExist) {
-            this.treeFolder.append(`<span class="chevron-breadcrumb"> <i class="fas fa-chevron-right"></i> </span> <button class="btn c-btn-outline-primary folder-breadcrumb-item" data-id="${folder.id}" onclick="foldersManager.goToFolder(${folder.id})"><i class="fas fa-folder-open folder-breadcrumb"></i> ${folder.name}</button>`);  
+            this.treeFolder.append(`<span class="chevron-breadcrumb"> <i class="fas fa-chevron-right"></i> </span> <button class="btn c-btn-outline-primary folder-breadcrumb-item" data-id="${folder.id}" onclick="foldersManager.goToFolder(${folder.id})"><i class="fas fa-folder-open folder-breadcrumb"></i> ${folder.name}</button>`);
         }
     }
 
-    goToFolder(folderId) {
+    goToFolder(folderId = null) {
         this.resetDashboardList();
         this.actualFolder = folderId;
         this.resetTreeFolders();
+
+        // switch the panel if we're not on the activity panel without procing the navigatePanel function
+        if ($_GET('panel') != 'classroom-dashboard-activities-panel-teacher') {
+            $('.classroom-navbar-button').removeClass("active");
+            $('.dashboard-block').hide();
+            $('#classroom-dashboard-activities-panel-teacher').show();
+            $('#dashboard-activities-teacher').addClass("active");
+        }
+
         if (folderId != null) {
             this.createTreeFolders();
         }
         this.displayAndDragulaInitObjects();
+    }
+
+    returnIfFolderExist(folderId) {
+        let breadCrumbFolderItems = document.querySelectorAll(".folder-breadcrumb-item"),
+            alreadyExist = false;
+
+        breadCrumbFolderItems.forEach(e => {
+            if (e.dataset.id == folderId) {
+                alreadyExist = true;
+            }
+        });
+        return alreadyExist;
     }
 
     resetDashboardList() {
@@ -242,7 +262,7 @@ class FoldersManager {
         if (actualFolder != null && actualFolder.parentFolder != undefined) {
             parent = actualFolder.parentFolder;
         }
-        
+
         while (parent) {
             idOfParents.push(parent);
             parent = this.getFolderById(parent.id).parentFolder;
@@ -259,11 +279,11 @@ class FoldersManager {
         });
     }
 
-    displayAndDragulaInitObjects() {
-        Main.getClassroomManager().getTeacherActivities(Main.getClassroomManager()).then(() => {
-            teacherActivitiesDisplay();
-            this.dragulaInitObjects();
-        });
+    async displayAndDragulaInitObjects() {
+        let activities = await Main.getClassroomManager().getTeacherActivities(Main.getClassroomManager());
+        coursesManager.myCourses = await coursesManager._requestGetMyCourseTeacher();
+        processDisplay();
+        this.dragulaInitObjects();
     }
 
     createRandomString() {
@@ -279,7 +299,7 @@ class FoldersManager {
         let folderTreeContent = !seek ? $("#folders-tree-content-modal") : $("#folders-seek-tree-content-modal"),
             content = "",
             rootFolderTranslation = i18next.t("classroom.activities.rootFolder");
-        
+
         folderTreeContent.html("");
         if (foldersWithoutParent.length > 0) {
             let randomString = this.createRandomString();
@@ -401,9 +421,7 @@ class FoldersManager {
         }
         this.resetInputs();
     }
-    
 
-    // WARNING
     manageResponseFromMoved(res) {
         if (!res.hasOwnProperty("error")) {
             this.getAllUserFolders().then(res => {
@@ -417,104 +435,105 @@ class FoldersManager {
     }
 
     dragulaInitObjects() {
-        // Reset the dragula fields
-        this.dragula.containers = [];
-
-        let foldersArray = document.querySelectorAll('.folder-item'),
-            activitiesArray = document.querySelectorAll('.activity-item'),
-            activitiesListArray = document.querySelectorAll('.folder-item-list'),
-            foldersListArray = document.querySelectorAll('.activity-item-list'),
-            coursesListArray = document.querySelectorAll('.course-item-list'),
-            coursesArray = document.querySelectorAll('.course-item'),
-            dragableObjects = [],
-            viewMode = null;
-
-
-        // sometime classroomManager is not loader
-        if (Main.getClassroomManager() != null) {
-            viewMode = Main.getClassroomManager().displayMode; 
-        } else {
-            viewMode = localStorage.getItem('classroomViewMode') != null ? localStorage.getItem('classroomViewMode') : 'card'
+        let droppableName = 'droppable-activityList'
+        if (Main.getClassroomManager().droppable[droppableName] != undefined) {
+            Main.getClassroomManager().droppable[droppableName].destroy();
         }
 
-        if (viewMode == "list") {
-            dragableObjects = [...foldersListArray, ...activitiesListArray, ...coursesListArray];
-        } else {
-            dragableObjects = [...foldersArray, ...activitiesArray, ...coursesArray, ];
-        }
-
-
-        dragableObjects.forEach(object => {
-            object.style.touchAction = "none";
+        Main.getClassroomManager().droppable[droppableName] = new Draggable.Draggable(document.querySelectorAll("#list-activities-teacher"), {
+            draggable: "#list-activities-teacher>div",
+            delay: {
+                drag: 150,
+                mouse: 150,
+                touch: 150
+            }
         });
 
-        this.dragula = dragula(dragableObjects)
-            .on('drop', function(el, target, source) {
-                if (target != undefined && source != undefined) {
-                    if ($(target).hasClass("folder-item") || $(target).hasClass("folder-item-list")) {
-                        let elId = source.getAttribute('data-id'),
-                            targetId = target.getAttribute('data-id');
-                        
-                        if ($(source).hasClass("folder-item") || $(source).hasClass("folder-item-list")) {
-                            foldersManager.moveFolderToFolder(elId, targetId).then(res => {
-                                foldersManager.manageResponseFromMoved(res);
-                            })
-                        } else if ($(source).hasClass("activity-item") || $(source).hasClass("activity-item-list")) {
-                            foldersManager.moveActivityToFolder(elId, targetId).then(res => {
-                                foldersManager.manageResponseFromMoved(res);
-                            })
-                        } else if ($(source).hasClass("course-item") || $(source).hasClass("course-item-list")) {
-                            foldersManager.moveCourseToFolder(elId, targetId).then(resMove => {
-                                coursesManager._requestGetMyCourseTeacher().then((res) => {
-                                    coursesManager.myCourses = res;
-                                    foldersManager.manageResponseFromMoved(resMove);
-                                });
-                            })
-                        }
-                    } else {
-                        foldersManager.displayAndDragulaInitObjects();
-                    }
-                } else {
-                    foldersManager.displayAndDragulaInitObjects();
+        Main.getClassroomManager().droppable[droppableName].on("drag:over", (evt) => {
+            this.lastElementOver = evt.data.over;
+            this.lastElementDragged = evt.data.originalSource;
+
+            if (Main.getClassroomManager().displayMode == "list") {
+                if ($(container).hasClass("folder-item-list")) {
+                    $(container).find(".folder-list").find(".list-folder-img-manager").attr("src", `${_PATH}assets/media/folders/folder_open_icon.svg`);
+                    SVGInject($(container).find(".folder-list").find(".list-folder-img-manager"));
                 }
-            }).on('shadow', function(el) { 
-                document.querySelectorAll('.gu-transit').forEach(element => {
-                    element.style.display = "none";
-                })
-            }).on('cancel', function() {
-                foldersManager.displayAndDragulaInitObjects();
-            }).on('over', function(el, container) {
-                if (Main.getClassroomManager().displayMode == "list") {
-                    if ($(container).hasClass("folder-item-list")) {
-                        $(container).find(".folder-list").find(".list-folder-img-manager").attr("src", `${_PATH}assets/media/folders/folder_open_icon.svg`);
-                        SVGInject($(container).find(".folder-list").find(".list-folder-img-manager"));
-                    }
-                } else {
-                    if ($(container).hasClass("folder-item")) {
-                        $(container).find(".folder-card").addClass('folder-open');
-                    }
+            } else {
+                if (evt.data.over.classList.contains("folder-item")) {
+                    evt.data.over.querySelector(".folder-card").classList.add("folder-open");
                 }
-            }).on('out', function(el, container) {
-                if (Main.getClassroomManager().displayMode == "list") {
-                    if ($(container).hasClass("folder-item-list")) {
-                        $(container).find(".folder-list").find(".list-folder-img-manager").attr("src", `${_PATH}assets/media/folders/folder_close_icon.svg`);
-                        SVGInject($(container).find(".folder-list").find(".list-folder-img-manager"));
-                    }
-                } else {
-                    if ($(container).hasClass("folder-item")) {
-                        $(container).find(".folder-card").removeClass('folder-open');
-                    }
+            }
+        });
+
+        Main.getClassroomManager().droppable[droppableName].on("drag:out", (evt) => {
+            if (Main.getClassroomManager().displayMode == "list") {
+                if ($(container).hasClass("folder-item-list")) {
+                    $(container).find(".folder-list").find(".list-folder-img-manager").attr("src", `${_PATH}assets/media/folders/folder_close_icon.svg`);
+                    SVGInject($(container).find(".folder-list").find(".list-folder-img-manager"));
                 }
-            })
+            } else {
+                let folders = document.querySelectorAll(".folder-card.folder-open");
+                folders.forEach(element => {
+                    element.classList.remove("folder-open");
+                });
+            }
+        });
+
+        Main.getClassroomManager().droppable[droppableName].on("drag:stop", (evt) => {
+            let source = this.lastElementDragged,
+                target = this.lastElementOver;
+
+            if (source == null || target == null) {
+                evt.cancel();
+                return;
+            }
+
+            if (source.dataset.id == target.dataset.id) {
+                evt.cancel();
+                return;
+            }
+
+            if ($(target).hasClass("folder-item") || $(target).hasClass("folder-item-list")) {
+                let elId = source.getAttribute('data-id'),
+                    targetId = target.getAttribute('data-id');
+                
+                if ($(source).hasClass("folder-item") || $(source).hasClass("folder-item-list")) {
+                    foldersManager.moveFolderToFolder(elId, targetId).then(res => {
+                        foldersManager.manageResponseFromMoved(res);
+                    })
+                } else if ($(source).hasClass("activity-item") || $(source).hasClass("activity-item-list")) {
+                    foldersManager.moveActivityToFolder(elId, targetId).then(res => {
+                        foldersManager.manageResponseFromMoved(res);
+                    })
+                } else if ($(source).hasClass("course-item") || $(source).hasClass("course-item-list")) {
+                    foldersManager.moveCourseToFolder(elId, targetId).then(resMove => {
+                        coursesManager._requestGetMyCourseTeacher().then((res) => {
+                            coursesManager.myCourses = res;
+                            foldersManager.manageResponseFromMoved(resMove);
+                        });
+                    })
+                }
+            }
+
+            this.lastElementDragged = null;
+            this.lastElementOver = null;
+            evt.cancel();
+        });
     }
 
 
-    displayModeSwitch(display)  {
+    displayModeSwitch(display) {
+        let switcherCard = document.getElementById("switcherCard"), 
+            switcherList =  document.getElementById("switcherList");
         if (display == "list") {
+            switcherCard.classList.add("half-opacity");
+            switcherList.classList.remove("half-opacity");
             Main.getClassroomManager().displayMode = "list";
             localStorage.setItem('classroomViewMode', "list");
             this.displayAndDragulaInitObjects();
         } else {
+            switcherList.classList.add("half-opacity");
+            switcherCard.classList.remove("half-opacity");
             Main.getClassroomManager().displayMode = "card";
             localStorage.setItem('classroomViewMode', "card");
             this.displayAndDragulaInitObjects();

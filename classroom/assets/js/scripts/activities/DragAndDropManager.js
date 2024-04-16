@@ -26,11 +26,8 @@ class DragAndDropManager {
         Main.getClassroomManager()._createActivity.content.dragAndDropFields.contentForTeacher = $('#drag-and-drop-content').bbcode();
         
         let responseDD = $('#drag-and-drop-content').bbcode().match(/\[answer\](.*?)\[\/answer\]/gi).map(match => match.replace(/\[answer\](.*?)\[\/answer\]/gi, "$1"));
-        let contentForStudent = $('#drag-and-drop-content').bbcode();
-    
-    
+        
         responseDD.forEach((e, i) => {
-            contentForStudent = contentForStudent.replace(`[answer]${e}[/answer]`, `﻿`);
             responseDD[i] = e.trim();
             if (e.includes('&&')) {
                 responseDD[i] = e.split('&&').map(e => e.trim()).join(',');
@@ -44,11 +41,10 @@ class DragAndDropManager {
         }
     
         Main.getClassroomManager()._createActivity.autocorrect = $('#drag-and-drop-autocorrect').is(":checked");
-        Main.getClassroomManager()._createActivity.content.hint = $('#drag-and-drop-hint').val();
+        Main.getClassroomManager()._createActivity.content.hint = $('#drag-and-drop-hint').bbcode();
     
     
         Main.getClassroomManager()._createActivity.solution = responseDD;
-        Main.getClassroomManager()._createActivity.content.dragAndDropFields.contentForStudent = contentForStudent;
     
         if (Main.getClassroomManager()._createActivity.content.dragAndDropFields.contentForTeacher == "") {
             return false;
@@ -80,27 +76,60 @@ class DragAndDropManager {
     manageUpdateForDragAndDrop(activity) {
         $('#activity-drag-and-drop').show();
         let content = JSON.parse(activity.content);
-        $("#drag-and-drop-hint").val(content.hint);
-        $("#drag-and-drop-states").htmlcode(bbcodeToHtml(content.states));
-        $("#drag-and-drop-content").htmlcode(bbcodeToHtml(content.dragAndDropFields.contentForTeacher));
+        $("#drag-and-drop-hint").forceInsertBbcode(content.hint);
+        $("#drag-and-drop-states").forceInsertBbcode(content.states);
+        $("#drag-and-drop-content").forceInsertBbcode(content.dragAndDropFields.contentForTeacher);
         activity.isAutocorrect ? $("#drag-and-drop-autocorrect").prop("checked", true) : $("#drag-and-drop-autocorrect").prop("checked", false);
-    
         navigatePanel('classroom-dashboard-classes-new-activity', 'dashboard-activities-teacher');
     }
 
     showTeacherDragAndDropActivity(contentParsed, Activity) {
-        $("#activity-states").html(bbcodeToHtml(contentParsed.states));
-    
         let contentForTeacher = contentParsed.dragAndDropFields.contentForTeacher;
-    
         contentForTeacher = parseContent(contentForTeacher, "drag-and-drop-answer-teacher", true);
-    
-        $("#activity-content").html(bbcodeToHtml(contentForTeacher));
+        $("#activity-content").html(bbcodeContentIncludingMathLive(contentForTeacher));
+        dragAndDropManager.showTeacherCommonCode(contentParsed);
+    }
+
+    showTeacherDragAndDropActivityDoable(contentParsed, Activity) {
+        let solution = JSON.parse(Activity.solution);
+        let contentDiv = document.getElementById('activity-content');
+        contentDiv.innerHTML = "";
+
+        let ContentString = manageDragAndDropText(contentParsed.dragAndDropFields.contentForTeacher, true, solution);
+
+        let divActivityDoable = document.createElement('div');
+        divActivityDoable.id = "activity-doable" + Activity.id;
+
+        $('#preview-drag-and-drop-text').html(`<div>${bbcodeContentIncludingMathLive(ContentString)}</div>`);
+        divActivityDoable.classList.add("activity-doable-drag-and-drop-teacher");
+
+        let divContent = document.createElement('div');
+        divContent.innerHTML = bbcodeContentIncludingMathLive(ContentString);
+        divActivityDoable.appendChild(divContent);
+
+        let divPreviewFields = document.createElement('div');
+        divPreviewFields.id = "preview-drag-and-drop-fields-teacher";
+        divPreviewFields.classList.add("m-2");
+        divPreviewFields.classList.add("drag-and-drop-fields");
+        divPreviewFields.classList.add("dropzone-preview");
+
+
+        divActivityDoable.appendChild(divPreviewFields);
+        contentDiv.appendChild(divActivityDoable);
+
+        solution.forEach(e => {
+            $('#preview-drag-and-drop-fields-teacher').append(dragAndDropManager.parseDraggableItems(e));
+        });
+
+        initializeDragulaWithOneContainer('activity-content', 'dropzone-preview', Activity.id);
+        dragAndDropManager.showTeacherCommonCode(contentParsed);
+    }
+
+    showTeacherCommonCode(contentParsed) {
+        $("#activity-states").html(bbcodeContentIncludingMathLive(contentParsed.states));
         $("#activity-content-container").show();
         $("#activity-states-container").show();
     }
-
-
 
     manageDisplayDragAndDrop(correction, content, correction_div, isFromCourse) {
         let course = isFromCourse ? "-course" : "";
@@ -110,53 +139,48 @@ class DragAndDropManager {
     
             let contentForTeacher = content.dragAndDropFields.contentForTeacher;
             contentForTeacher = parseContent(contentForTeacher, "drag-and-drop-answer-teacher", true);
-            $('#activity-content'+course).html(bbcodeToHtml(contentForTeacher));
+            $('#activity-content'+course).html(bbcodeContentIncludingMathLive(contentForTeacher));
             $('#activity-content-container'+course).show();
         }
     
-        $('#activity-states'+course).html(bbcodeToHtml(content.states));
+        $('#activity-states'+course).html(bbcodeContentIncludingMathLive(content.states));
         $('#activity-states-container'+course).show();
         
         if (correction <= 1 || correction == null) {
             if (!UserManager.getUser().isRegular) {
-    
-                let ContentString = manageDragAndDropText(content.dragAndDropFields.contentForStudent);
+
+                // reset both div course and normal to avoid id duplication
+                $('#drag-and-drop-text').html("");
+                $('#drag-and-drop-text-course').html("");
+
+                let ContentString = manageDragAndDropText(content.dragAndDropFields.contentForTeacher);
                 $('#drag-and-drop-text'+course).html(`<div>${ContentString}</div>`);
     
                 // Get the response array and shuffle it
                 let choices = shuffleArray(JSON.parse(Activity.activity.solution));
     
                 choices.forEach(e => {
-                    $('#drag-and-drop-fields'+course).append(`<p class="draggable draggable-items drag-drop" id="${e}">${e.trim()}</p>`);
+                    $('#drag-and-drop-fields'+course).append(dragAndDropManager.parseDraggableItems(e));
                 });
                 $('#activity-drag-and-drop-container'+course).show();
+
+                let dropContainer = document.getElementById('drag-and-drop-fields'+course);
+                dropContainer.classList.add('dropzone');
             
-                // init dragula if it's not already initialized
-                if (Main.getClassroomManager().dragulaGlobal == false) {
-                    Main.getClassroomManager().dragulaGlobal = dragula();
-                }
-    
-                // Reset the dragula fields
-                Main.getClassroomManager().dragulaGlobal.containers = [];
-                
-                Main.getClassroomManager().dragulaGlobal = dragula([document.querySelector('#drag-and-drop-fields'+course)]).on('drop', function(el, target, source) {
-                    if (target.id != 'drag-and-drop-fields'+course) {
-                        let swap = $(target).find('p').not(el);
-                        swap.length > 0 ? source.append(swap[0]) : null;
-                    }
-                });
-    
-                $('.dropzone').each((i, e) => {
-                    Main.getClassroomManager().dragulaGlobal.containers.push(document.querySelector('#'+e.id));
-                });
+                initializeDragulaWithOneContainer('activity-drag-and-drop-container'+course, 'dropzone', Activity.activity.id);
     
                 // Place the student's response if there is one
                 if (Activity.response != null && Activity.response != "") {
                     let response = JSON.parse(Activity.response);
                     response.forEach((e, i) => {
-                        if (e.string.toLowerCase() != "" && e.string.toLowerCase() != null) {
-                            if ($(`#${e.string.toLowerCase()}`).length > 0) {
-                                $(`#dz-${i}`).html($(`#${e.string.toLowerCase()}`)[0]);
+                        if (bbcodeToHtml(e.string) != e.string) {
+                            $(`#dz-${i}`).html(document.getElementById(e.string));
+                        } else {
+                            if (e.string.toLowerCase() != "" && e.string.toLowerCase() != null) {
+                                let contentById = document.getElementById(e.string.toLowerCase());
+                                if (contentById != null) {
+                                    $(`#dz-${i}`).html(contentById);
+                                }
                             }
                         }
                     })
@@ -172,7 +196,7 @@ class DragAndDropManager {
     displayDragAndDropTeacherSide(correction_div, correction, content, isFromCourse) {
         let course = isFromCourse ? "-course" : "";
         let studentResponses = JSON.parse(Activity.response);
-        let studentContentString = content.dragAndDropFields.contentForStudent;
+        let studentContentString = content.dragAndDropFields.contentForTeacher;
     
         $(`input[id^="corrected-student-response-"]`).each((i, e) => {
             $(e).remove();
@@ -180,19 +204,28 @@ class DragAndDropManager {
     
         if (studentResponses != "" && studentResponses != null) {
             for (let i = 0; i < studentResponses.length; i++) {
-                let autoWidthStyle = 'style="width:' + (studentResponses[i].string.toLowerCase().length + 2) + 'ch"';
-                studentContentString = studentContentString.replace(`﻿`, `<input readonly class='drag-and-drop-answer-teacher' id="corrected-student-response-${i}" value="${studentResponses[i].string.toLowerCase()}" ${autoWidthStyle}>`);
+                let autoWidthStyle = 'style="width:' + (studentResponses[i].string.toLowerCase().length + 4) + 'ch"';
+                let answer = studentContentString.match(/\[answer\](.*?)\[\/answer\]/g)[0];
+                let mathContent = parseMathLiveContent(studentResponses[i].string);
+
+                if (mathContent) {
+                    studentContentString = studentContentString.replace(answer, `<div class='drag-and-drop-answer-teacher' id="corrected-student-response-${i}">${mathContent}</div>`);
+                } else if (bbcodeToHtml(studentResponses[i].string) != studentResponses[i].string) {
+                    studentContentString = studentContentString.replace(answer, bbcodeToHtml(studentResponses[i].string));
+                } else {
+                    studentContentString = studentContentString.replace(answer, `<input readonly class='drag-and-drop-answer-teacher' id="corrected-student-response-${i}" value="${studentResponses[i].string.toLowerCase()}" ${autoWidthStyle}>`);
+                }
             }
         
-            $('#activity-student-response-content'+course).html(bbcodeToHtml(studentContentString));
+            $('#activity-student-response-content'+course).html(`<div>${bbcodeContentIncludingMathLive(studentContentString)}</div>`);
             $('#activity-student-response'+course).show();
             Main.getClassroomManager().getActivityAutocorrectionResult(Activity.activity.id, Activity.id).then(result => {
-                for (let i = 0; i < $(`input[id^="corrected-student-response-"]`).length; i++) {
-                    $('#corrected-student-response-' + i).addClass("answer-correct");
+                for (let i = 0; i < $(`[id^="corrected-student-response-"]`).length; i++) {
+                    document.getElementById('corrected-student-response-' + i).classList.add("answer-correct");
                 }
             
                 for (let i = 0; i < result.success.length; i++) {
-                    $('#corrected-student-response-' + (result.success[i])).addClass("answer-incorrect");
+                    document.getElementById('corrected-student-response-' + (result.success[i])).classList.add("answer-correct");
                 }
             })
         }
@@ -200,36 +233,201 @@ class DragAndDropManager {
     }
 
     dragAndDropPreview(activity) {
-        let ContentString = manageDragAndDropText(activity.content.dragAndDropFields.contentForStudent, true);
-        $('#preview-drag-and-drop-text').html(`<div>${ContentString}</div>`);
+        let ContentString = manageDragAndDropText(activity.content.dragAndDropFields.contentForTeacher, true);
+        $('#preview-drag-and-drop-text').html(`<div>${bbcodeContentIncludingMathLive(ContentString)}</div>`);
 
         // Get the response array and shuffle it
-        let choices = shuffleArray(activity.solution);
-        choices.forEach(e => {
-            $('#preview-drag-and-drop-fields').append(`<p class="draggable draggable-items drag-drop" id="${e}">${e.trim()}</p>`);
-        });
-    
-        // init dragula if it's not already initialized
-        if (Main.getClassroomManager().dragulaGlobal == false) {
-            Main.getClassroomManager().dragulaGlobal = dragula();
-        }
-
-        // Reset the dragula fields
-        Main.getClassroomManager().dragulaGlobal.containers = [];
-        Main.getClassroomManager().dragulaGlobal = dragula([document.querySelector('#preview-drag-and-drop-fields')]).on('drop', function(el, target, source) {
-            if (target.id != 'preview-drag-and-drop-fields') {
-                let swap = $(target).find('p').not(el);
-                swap.length > 0 ? source.append(swap[0]) : null;
-            }
+        let solution = shuffleArray(activity.solution);
+        solution.forEach(e => {
+            $('#preview-drag-and-drop-fields').append(dragAndDropManager.parseDraggableItems(e));
         });
 
-        $('.dropzone-preview').each((i, e) => {
-            Main.getClassroomManager().dragulaGlobal.containers.push(document.querySelector('#'+e.id));
-        });
-
+        initializeDragulaWithOneContainer('activity-doable'+activity.id, 'dropzone-preview');
         $('#preview-states').show();
         $('#preview-activity-drag-and-drop-container').show();
         $('#activity-preview-div').show();
+    }
+
+    dragAndDropValidateActivityOnePageCourse(activityId, activityLink, correction) {
+        let studentResponse = [];
+        let foundActivity = null;
+        Main.getClassroomManager()._myCourses.forEach((course) => {
+            course.activities.forEach((activity) => {
+                if (activity.id == activityLink && activity.activity.id == activityId) {
+                    foundActivity = activity;
+                }
+            })
+        })
+        
+        if (correction == 1) {
+            for (let i = 0; i < $(`span[id^="dz${"-"+activityId}"]`).length; i++) {
+
+                let string = document.getElementById(`dz${"-"+activityId}-${i}`).children.length > 0 ? document.getElementById(`dz${"-"+activityId}-${i}`).children[0].innerHTML : "";
+                let childId = document.getElementById(`dz${"-"+activityId}-${i}`).children.length > 0 ? document.getElementById(`dz${"-"+activityId}-${i}`).children[0].id : "";
+
+                const soluce = JSON.parse(foundActivity.activity.solution);
+                soluce.forEach(r => {
+                    if (bbcodeToHtml(r) == string) {
+                        string = r;
+                    } else if (r == childId) {
+                        string = childId;
+                    }
+                });
+    
+                studentResponse.push({
+                    string: string,
+                });
+            }
+        }
+
+        Main.getClassroomManager().saveNewStudentActivity(activityId, correction, null, JSON.stringify(studentResponse), activityLink).then((response) => {
+            dragAndDropManager.showErrors(response, activityId);
+            coursesManager.displayHintForOnePageCourse(response, activityId);
+            if (response.hasOwnProperty('activity')) {
+                coursesManager.manageValidateReponse(response);
+            }
+        });
+    }
+
+    renderDragAndDropActivity(activityData, htmlContainer, idActivity, responses) {
+        coursesManager.manageStatesAndContentForOnePageCourse(idActivity, htmlContainer, activityData);
+
+        if (activityData.doable) {
+            const dragAndDropFieldsDiv = document.createElement('div');
+            dragAndDropFieldsDiv.classList.add('drag-and-drop-fields');
+            dragAndDropFieldsDiv.classList.add('dropzone-' + idActivity);
+            dragAndDropFieldsDiv.id = 'drag-and-drop-fields-one-page-course' + idActivity;
+            dragAndDropFieldsDiv.innerHTML = activityData.dragAndDropChoices;
+            htmlContainer.appendChild(dragAndDropFieldsDiv);
+            
+            initializeDragulaWithOneContainer(`activity-${idActivity}-course-one-page`, 'dropzone-' + idActivity, idActivity);
+    
+            if (responses != null && responses != "") {
+                let response = JSON.parse(responses);
+                response.forEach((e, i) => {
+                    if (bbcodeToHtml(e.string) != e.string) {
+                        $(`#dz-${i}`).html(document.getElementById(e.string));
+                    } else {
+                        if (e.string.toLowerCase() != "" && e.string.toLowerCase() != null) {
+                            let contentById = document.getElementById(e.string.toLowerCase());
+                            if (contentById != null) {
+                                $(`#dz-${i}`).html(contentById);
+                            }
+                        }
+                    }
+                })
+            }
+    
+            coursesManager.manageValidateBtnForOnePageCourse(idActivity, htmlContainer, activityData);
+        }
+    }
+
+    getManageDisplayDragAndDrop(content, activity, correction_div) {
+        const activityData = {
+            states: null,
+            content: null,
+            correction: null,
+            doable: false,
+            dragAndDropChoices: null,
+            type: "dragAndDrop",
+            link: activity.id,
+            id: activity.activity.id,
+        }
+
+        activityData.states = bbcodeContentIncludingMathLive(content.states);
+        activityData.doable = activity.correction <= 1 || activity.correction == null;
+
+        if (activity.correction <= 1 || activity.correction == null) {
+            if (!UserManager.getUser().isRegular) {
+                let ContentString = manageDragAndDropText(content.dragAndDropFields.contentForTeacher, false, JSON.parse(activity.activity.solution), activity.activity.id);
+
+                if (bbcodeContentIncludingMathLive(ContentString) != ContentString) {
+                    activityData.content = `<div>${bbcodeContentIncludingMathLive(ContentString)}</div>`;
+                } else {
+                    activityData.content = `<div>${ContentString}</div>`;
+                }
+    
+                // Get the response array and shuffle it
+                let choices = shuffleArray(JSON.parse(activity.activity.solution));
+                choices.forEach(e => {
+                    if (activityData.dragAndDropChoices != null) {
+                        activityData.dragAndDropChoices += dragAndDropManager.parseDraggableItems(e);
+                    } else {
+                        activityData.dragAndDropChoices = dragAndDropManager.parseDraggableItems(e);
+                    }
+                });
+            }
+        } else if (activity.correction > 1) {
+            activityData.content = dragAndDropManager.returnCorrectedContent(activity, content);
+        } 
+
+        return activityData;
+    }
+
+    parseDraggableItems(item) {
+        let returnedItem = "";
+        let contentMath = parseMathLiveContent(item);
+        if (bbcodeToHtml(item) != item || contentMath) {
+            if (contentMath) {
+                returnedItem = `<p class="draggable draggable-items drag-drop" id="${item}">${contentMath}</p>`;
+            } else {
+                returnedItem = `<p class="draggable draggable-items drag-drop" id="${item}">${bbcodeToHtml(item)}</p>`;
+            }
+        } else {
+            returnedItem = `<p class="draggable draggable-items drag-drop" id="${item}">${item.trim()}</p>`;
+        }
+        return returnedItem;
+    }
+
+    returnCorrectedContent(activity, content) {
+        let studentResponses = JSON.parse(activity.response);
+        let studentContentString = content.dragAndDropFields.contentForTeacher;
+        let solution = JSON.parse(activity.activity.solution);
+        let correctedContent = "";
+
+    
+        if (studentResponses != "" && studentResponses != null) {
+            for (let i = 0; i < studentResponses.length; i++) {
+                let autoWidthStyle = 'style="width:' + (studentResponses[i].string.toLowerCase().length + 4) + 'ch"';
+                let answer = studentContentString.match(/\[answer\](.*?)\[\/answer\]/g)[0];
+                let mathContent = parseMathLiveContent(studentResponses[i].string);
+
+                let correctAnswer = false;
+                if (studentResponses[i].string == solution[i]) {
+                    correctAnswer = true;
+                }
+
+                if (mathContent) {
+                    studentContentString = studentContentString.replace(answer, `<div class='drag-and-drop-answer-teacher' id="corrected-student-response-${i}">${mathContent}</div>`);
+                } else if (bbcodeToHtml(studentResponses[i].string) != studentResponses[i].string) {
+                    studentContentString = studentContentString.replace(answer, bbcodeToHtml(studentResponses[i].string));
+                } else {
+                    studentContentString = studentContentString.replace(answer, `<input readonly class='drag-and-drop-answer-teacher ${correctAnswer ? "answer-correct" : ""}' id="corrected-student-response-${i}" value="${studentResponses[i].string.toLowerCase()}" ${autoWidthStyle}>`);
+                }
+            }
+            
+            correctedContent = bbcodeContentIncludingMathLive(studentContentString);
+        }
+
+        return correctedContent;
+    }
+
+    showErrors(response, activityId = null) {
+        if (!response.hasOwnProperty('badResponse')) {
+            return;
+        }
+
+        let activityTag = activityId != null ? `-${activityId}` : "";
+
+
+        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
+        for (let i = 0; i < $(`span[id^="dz${activityTag}"]`).length; i++) {
+            $('#dz' + activityTag + "-" + i).css("border","1px solid var(--correction-3)");
+        }
+
+        for (let i = 0; i < response.badResponse.length; i++) {
+            $('#dz' + activityTag +  "-" + (response.badResponse[i])).css("border","1px solid var(--correction-0)");
+        }
     }
 }
 

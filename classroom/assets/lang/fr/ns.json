@@ -37,7 +37,7 @@
 			"carousel": {
 				"activities": {
 					"title": "Créez facilement vos activités",
-					"content": "L'éditeur d'activité permet de créer du contenu pédagogique en toute simplicité, en incluant du texte, des images, des vidéos, des interfaces de programmation Vittascience, des présentations Genially et bien d'autres outils.</br></br>Parcourez la banque de ressources collaboratives Vittascience, qui regroupe plusieurs centaines d'activités libres et réutilisables. Si l'auteur de la ressource l'autorise, vous pouvez même apporter des modifications pour adapter le contenu à vos apprenants !"
+					"content": "L'éditeur d'activité permet de créer du contenu pédagogique en toute simplicité, en incluant du texte, des images, des vidéos, des interfaces de programmation Vittascience, des présentations Genially et bien d'autres outils.</br></br>Parcourez la banque de ressources collaboratives Vittascience, qui regroupe plusieurs centaines d'activités libres et réutilisables. Si l'auteur de la ressourcel'autorise, vous pouvez même apporter des modifications pour adapter le contenu à vos apprenants !"
 				},
 				"attribute": {
 					"title": "Attribuez les à vos apprenants",
@@ -92,7 +92,7 @@
 			"class": "CLASSE : ",
 			"todo": "Activités </br> à faire",
 			"done": "Activités </br> réalisées",
-			"create": "Activités </br> crées",
+			"create": "Activités </br> créées",
 			"correctionToDo": "Corrections </br> à faire",
 			"switchMode": "Passer en mode apprenant",
 			"switchModeTeacher": "Retour au mode enseignant",
@@ -139,8 +139,10 @@
 			"activityDuplicated": "L'activité {{activityName}} a été dupliquée",
 			"mustAttributeToStudent": "Vous devez attribuer l'activité à des étudiants",
 			"activityAttributed": "L'activité {{activityTitle}} a été attribuée aux apprenants listés",
+			"courseAttributed": "Le parcours a été attribué aux apprenants listés",
 			"activityAttributionChanged": "L'attribution de l'activité {{activityTitle}} a été modifiée pour les apprenants listés",
 			"activityCreated": "L'activité {{activityTitle}} a été créée",
+			"activityImported": "L'activité {{activityTitle}} a été importée",
 			"activityChanged": "L'activité {{activityTitle}} a été modifiée",
 			"activityTitleMissing": "Vous devez renseigner le titre de l'activité",
 			"CsvFileMissing": "Vous n'avez pas choisi de fichier csv",
@@ -207,7 +209,9 @@
 			"courseDeleted": "Le parcours a bien été supprimé",
 			"courseNotDeleted": "Le parcours n'a pas pu être supprimé",
 			"courseDuplicated": "Le parcours a bien été dupliqué",
-			"courseNotDuplicated": "Le parcours n'a pas pu être dupliqué"
+			"courseNotDuplicated": "Le parcours n'a pas pu être dupliqué",
+			"tagAlreadyInList": "Le tag est déjà dans la liste",
+			"imageSuccessfullyDeleted": "L'image a été supprimée avec succès"
 		},
 		"ids": {
 			"classroom-dashboard-help-panel-teacher": "Aide",
@@ -257,7 +261,7 @@
 				"delete": "Supprimer",
 				"copyLink": "Copier le lien direct",
 				"copyImage": "Copier l'image",
-				"downloadImage": "Télécharcher l'image",
+				"downloadImage": "Télécharger l'image",
 				"learnerMode": "Mode apprenant",
 				"dueBy": "À rendre avant le",
 				"timePassed": "Temps passé : "
@@ -282,6 +286,8 @@
 			"waiting": "Pas encore réalisé",
 			"done": "Terminés",
 			"todo": "A corriger",
+			"corrected": "Corrigé",
+			"toComplete": "À compléter",
 			"anonymise": "Anonymiser la liste de vos élèves afin de pouvoir afficher le tableau de bord à vos apprenants.",
 			"save-draft": "Sauvegarder en tant que brouillon",
 			"validate": "Valider l'activité",
@@ -368,6 +374,7 @@
 				"success": "Bravo, vous avez créé une activité !",
 				"attribute": "Attribuer l'activité dès maintenant",
 				"attribute2": "Attribuer l'activité ",
+				"attributeCourse": "Attribuer le parcours ",
 				"return": "Retourner à Mes activités",
 				"hint": "Vous pourrez toujours attribuer plus tard cette activité depuis le tableau de bord.",
 				"modify": "Modifier l'activité",
@@ -395,18 +402,18 @@
 			"addActivity": "Ajouter une activité",
 			"exportCsv": "Exporter csv",
 			"month": {
-				"1": "Janvier",
-				"2": "Février",
+				"1": "Jan.",
+				"2": "Fév.",
 				"3": "Mars",
-				"4": "Avril",
+				"4": "Avr.",
 				"5": "Mai",
 				"6": "Juin",
-				"7": "Juillet",
+				"7": "Juil.",
 				"8": "Août",
-				"9": "Septembre",
-				"10": "Octobre",
-				"11": "Novembre",
-				"12": "Décembre"
+				"9": "Sept.",
+				"10": "Oct.",
+				"11": "Nov.",
+				"12": "Déc."
 			},
 			"preview": "Prévisualisation",
 			"deleteActivityDisclaimer": "Vous êtes sur le point de supprimer une activité. Cette action est irréversible.",
@@ -430,7 +437,7 @@
 				"createFolder": "Créer un dossier",
 				"deleteFolder": "Confirmer la suppression du dossier",
 				"updateFolder": "Modifier le dossier",
-				"nameMandatory": "Nom du dossier <span class='mandatory'>*</span>",
+				"nameMandatory": "Nom du dossier <span class='c-text-red'>*</span>",
 				"deleteDisclaimer": "Attention, le dossier et l'ensemble de son contenu (activités et sous-dossiers) seront supprimés"
 			},
 			"facultative": "Champs facultatifs",
@@ -523,7 +530,7 @@
 			},
 			"exportCsv": {
 				"title": "Exporter au format csv",
-				"exportLearnersDescription": "Télécharcher la liste des apprenants pour cette classe ainsi que leur mot de passe. Le fichier téléchargé est au format .csv.",
+				"exportLearnersDescription": "Télécharger la liste des apprenants pour cette classe ainsi que leur mot de passe. Le fichier téléchargé est au format .csv.",
 				"exportLearners": "Télécharger la liste des apprenants",
 				"exportDashboardDescription": "Télécharger la liste des apprenants pour cette classe ainsi que, pour chacun d'entre eux, leur activités attribuées ainsi que l'état de chaque activité (pas encore réalisée, à corriger, complétée). Le fichier téléchargé est au format .csv.",
 				"exportDashboard": "Télécharger le tableau de bord"
@@ -550,7 +557,13 @@
 				"placeholderInput": "Mot de passe",
 				"validateButton": "Valider"
 			},
-			"assets": "Banque d'images"
+			"/openClassroom/classroom/assets": "Banque d'images",
+			"quitLtiActivity": {
+				"title": "Quitter l'activité en cours",
+				"description": "Vous vous apprêtez à quitter l'activité en cours alors que vos changements n'ont pas été sauvegardés. Voulez vous tout de même quitter et perdre les changements non sauvegardés ?",
+				"yesButton": "Oui, quitter",
+				"noButton": "Non, rester"
+			}
 		},
 		"folders": {
 			"folderManagement": "Gestion des dossiers",
@@ -567,7 +580,8 @@
 			"note-3": "BIEN, tu as réussi cette activité !",
 			"note-2": "À REVOIR, la réponse n'est pas correcte",
 			"note-4": "NON NOTÉ",
-			"note-0": "EN ATTENTE DE CORRECTION"
+			"note-0": "EN ATTENTE DE CORRECTION",
+			"selectActivities": "Activités <span class='c-text-red'>*</span>"
 		}
 	},
 	"faqInfo": {
@@ -987,7 +1001,8 @@
 		"userNotFound": "Aucun utilisateur trouvé avec ces identifiants.",
 		"accountDeactivated": "Votre compte a été désactivé, contactez un administrateur si le problème persiste.",
 		"inactiveAccount": "Votre compte n'est pas encore actif, cliquez sur le bouton ci dessous pour envoyer l'email de validation.",
-		"errorBeta": "Vous devez être bêta testeur pour accéder à cette fonctionalité. <a href='https://fr.vittascience.com/about#contact'>Contacter l'équipe Vittascience</a> pour en savoir plus."
+		"errorBeta": "Vous devez être bêta testeur pour accéder à cette fonctionalité. <a href='https://fr.vittascience.com/about#contact'>Contacter l'équipe Vittascience</a> pour en savoir plus.",
+		"badInput": "L'email et le mot de passe sont requis"
 	},
 	"signup-popup": {
 		"title": "Inscription",
@@ -1004,7 +1019,7 @@
 		"telephonePlaceholder": "Votre numéro de téléphone (falcultatif).",
 		"passwordPlaceholder": "Minimum 8 caractères. Majuscules, minuscules et chiffres.",
 		"passwordConfirmedPlaceholder": "Répéter votre mot de passe une seconde fois.",
-		"mandatory": "Les champs marqués par un <span class=\"mandatory\">*</span> sont obligatoires.",
+		"mandatory": "Les champs marqués par un <span class='c-text-red'>*</span> sont obligatoires.",
 		"submit": "Confirmer",
 		"back": "Retour",
 		"title2nd": "Merci de nous fournir quelques informations supplémentaires",
@@ -1057,6 +1072,9 @@
 		"theme": "Thème",
 		"light_theme": "Thème clair",
 		"dark_theme": "Thème sombre",
+		"contrast": "Contraste",
+		"normal_contrast": "Contraste normal",
+		"high_contrast": "Contraste élevé",
 		"font": "Police",
 		"basic_font": "Basique",
 		"know_more": "En savoir plus"
@@ -1146,7 +1164,7 @@
 			"noUserFoundToken": "Ce token ne correspond à aucun utilisateur.",
 			"missingData": "Il manque des informations pour finaliser l'opération.",
 			"missingDataDate": "Il manque des informations de date pour finaliser l'opération.",
-			"errorSending": "Une erreur est survenue lors de l'envoie de l'e-mail",
+			"errorSending": "Une erreur est survenue lors de l'envoi de l'e-mail",
 			"userNotFound": "Utilisateur introuvable et / ou déjà actif",
 			"userNotFoundId": "Utilisateur introuvable",
 			"errorActivation": "Une erreur est survenue lors de la l'activation.",
@@ -1160,7 +1178,7 @@
 			"errorActivation": "Une erreur est survenue lors de l'activation du compte.",
 			"create": "Créer un utilisateur",
 			"delete": "Supprimer un utilisateur",
-			"deleteConfirmation": "Veuillez écrire \"supprimer\" dans le champ si dessous pour valider l'action.",
+			"deleteConfirmation": "Veuillez écrire \"supprimer\" dans le champ ci-dessous pour valider l'action.",
 			"deleteIntentionSA": "Vous vous apprêtez à supprimer l'utilisateur : <span id=\"mdi_firstnameSA\"></span>",
 			"disableIntention": "Vous vous apprêtez à désactiver l'utilisateur : <span id=\"mde_firstnameSA\"></span>",
 			"deleteConfirmationTitle": "Confirmer la suppression",
@@ -1169,7 +1187,7 @@
 			"updateAppUser": "Modifier les applications de l'utilisateur",
 			"updateApp": "Modifier les applications",
 			"disable": {
-				"message": "Veuillez écrire 'supprimer' dans le champ si dessous pour valider l'action.",
+				"message": "Veuillez écrire 'supprimer' dans le champ ci-dessous pour valider l'action.",
 				"intention": "Vous vous apprêtez à supprimer l'utilisateur : <span id=\"md_firstnameGA\"></span>"
 			},
 			"mail": {
@@ -1310,7 +1328,7 @@
 				"signinSubtitle": "Entrez vos identifiants pour accèder à votre compte",
 				"addressMail": "Adresse mail",
 				"disclaimer": "En rejoignant ce groupe, vous autorisez l'admin du groupe à mofidier et / ou désactiver votre compte. Vous disposerez aussi des applications que le groupe possède.",
-				"lastStep": "Il ne reste plus qu'une étape ! Cliquez sur le bouton si dessous pour finaliser la liaison.",
+				"lastStep": "Il ne reste plus qu'une étape ! Cliquez sur le bouton ci-dessous pour finaliser la liaison.",
 				"joinGroup": "Vous vous apprêtez à rejoindre le groupe \"<span id='groupNameConfirmLink'></span>\"",
 				"notfound": "Groupe introuvable !",
 				"notfoundDetails": "Nous ne trouvons aucun groupe lié au code <span id='gourpName3'></span>.",
@@ -1492,7 +1510,8 @@
 			"monitoringGroup": "Informations du groupe",
 			"appStatus0": "Inactive",
 			"appStatus1": "À jour",
-			"appStatus2": "Périmé"
+			"appStatus2": "Périmé",
+			"nameAlreadyExist": "Une application avec ce nom existe déjà"
 		},
 		"activitiesRestrictions": {
 			"updateAll": "Modifier les restrictions",
@@ -1571,17 +1590,25 @@
 		}
 	},	
 	"newActivities": {
+		"statusActivitySent": "Ton activité a bien été envoyée et est en attente de correction, tu peux tout de même la modifier si tu le souhaites.",
 		"create": "Créer une nouvelle activité",
 		"delete": "Supprimer",
+		"import" : "Importer",
+		"importSuccess": "Activité importée avec succès",
+		"importError": "Une erreur est survenue lors de l'import de l'activité",
+		"export": "Exporter",
+		"exportSuccess": "Activité exportée avec succès",
+		"exportError": "Une erreur est survenue lors de l'export de l'activité",
 		"addQuiz": "Ajouter une proposition",
 		"states": "Énoncé de l'activité <span class=\"c-text-red\">*</span>",
 		"cancel": "Annuler",
+		"ok": "ok",
 		"autocorrect": "Correction automatique",
 		"correction": "Corrigé de l'activité",
 		"contentTitle": "Contenu de l'activité",	
 		"tolerance1": "Ajouter une tolérance d'erreur de",
 		"tolerance2": "caractère(s) sur l'ensemble de la réponse de l'élève.",
-		"hint": "Indice <i>* s'affiche si la réponse est fausse</i>",
+		"hint": "Indice",
 		"title": "Titre de l'activité <span class=\"c-text-red\">*</span>",
 		"description": "Description de l'activité <span class=\"c-text-red\">*</span>",
 		"content": "Contenu de l'activité <span class=\"c-text-red\">*</span>",
@@ -1602,15 +1629,27 @@
 				"fillIn": "Cette activité permet d’appliquer ses connaissances en remplissant des cases vides.",
 				"dragAndDrop": "Cette activité permet de glisser et déposer des mots dans différents espaces vides."
 			}
+		},
+		"modals": {
+			"importActivity": "Gestionnaire d'import",
+			"importTitle": "Importer une activité",
+			"validateMessage": "Voulez-vous importer l'activité <span id='import-activity-title'></span> ?",
+			"imageSize": "Taille de l'image"
 		}
 	},
 	"courses": {
+		"add": "Créer un parcours",
 		"addActivity":"Ajouter une activité existante",
 		"addActivities":"Ajouter des activités",
 		"createActivity": "Créer une nouvelle activité",
 		"searchActivity": "Rechercher une activité",
 		"placeholderTitle": "Titre de votre activité",
 		"placeholderDescription": "Description de votre activité",
+		"format": {
+			"label": "Format d'affichage du parcours : ",
+			"onePage": "Une page",
+			"standart": "Standard"
+		},
 		"pagination": {
 			"create":"Création du parcours",
 			"title": "Titre",
@@ -1642,6 +1681,7 @@
 		"attribution": "Attribuer le parcours <i class='fas fa-chevron-right'></i>",
 		"return": "Retour <i class='fas fa-chevron-right'></i>",
 		"update": "Modifier le parcours",
+		"show": "Afficher le parcours",
 		"informationWhenEmpty": "Cliquer sur les boutons ci-dessus pour ajouter des activités au parcours."
 	}
 }

@@ -94,13 +94,6 @@ class UserLoginAttemptDAO
     public function resetLoginAttemptsByEmail($email)
     {
         return DataBaseManager::getSharedInstance()
-            ->exec(
-                "
-                DELETE FROM users_login_attempts
-                WHERE email = ?
-
-            ",
-                [$email]
-            );
+            ->exec("DELETE FROM users_login_attempts WHERE email = ?", [$email]);
     }
 }

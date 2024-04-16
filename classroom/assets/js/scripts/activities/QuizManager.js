@@ -13,13 +13,13 @@ class QuizManager {
         } else {
             let tempArraySolution = []; 
             let tempArraycontentForStudent = []; 
-            for (let i = 1; i < $(`input[id^="quiz-suggestion-"]`).length+1; i++) {
+            for (let i = 1; i < $(`textarea[id^="quiz-suggestion-"]`).length+1; i++) {
                 let res = {
-                    inputVal: $(`#quiz-suggestion-${i}`).val(),
+                    inputVal: $(`#quiz-suggestion-${i}`).bbcode(),
                     isCorrect: $(`#quiz-checkbox-${i}`).is(':checked')
                 }
                 let student = {
-                    inputVal: $(`#quiz-suggestion-${i}`).val()
+                    inputVal: $(`#quiz-suggestion-${i}`).bbcode()
                 }
                 tempArraySolution.push(res);
                 tempArraycontentForStudent.push(student);
@@ -28,7 +28,7 @@ class QuizManager {
             Main.getClassroomManager()._createActivity.content.quiz.contentForStudent = tempArraycontentForStudent;
             Main.getClassroomManager()._createActivity.solution = tempArraySolution;
             
-            Main.getClassroomManager()._createActivity.content.hint = $('#quiz-hint').val();
+            Main.getClassroomManager()._createActivity.content.hint = $('#quiz-hint').bbcode();
             Main.getClassroomManager()._createActivity.autocorrect = $('#quiz-autocorrect').is(":checked");
             
             if ($('#quiz-states').bbcode() != '') {
@@ -42,8 +42,8 @@ class QuizManager {
     
     checkEmptyQuizFields() {
         let empty = false;
-        for (let i = 1; i < $(`input[id^="quiz-suggestion-"]`).length+1; i++) {
-            if ($(`#quiz-suggestion-${i}`).val() == '') {
+        for (let i = 1; i < $(`textarea[id^="quiz-suggestion-"]`).length+1; i++) {
+            if ($(`#quiz-suggestion-${i}`).bbcode() == '') {
                 empty = true;
             }
         }
@@ -70,23 +70,37 @@ class QuizManager {
         } while ($(`#quiz-suggestion-${i}`).length > 0);
     
         let divToAdd = `<div class="form-group c-primary-form" id="quiz-group-${i}">
-                            <label for="quiz-suggestion-${i}" id="quiz-label-suggestion-${i}">Proposition ${i}</label>
-                            <button class="btn c-btn-grey mx-2" data-i18n="newActivities.delete" id="quiz-button-suggestion-${i}" onclick="deleteQuizSuggestion(${i})">Delete</button>
-    
-                            <div class="input-group mt-3">
-                                <input type="text" id="quiz-suggestion-${i}" class="form-control">
-                                <div class="input-group-append">
-                                    <div class="input-group-text c-checkbox c-checkbox-grey">
+                            <div class="row my-1">
+                                <div class="col">
+                                    <label for="quiz-suggestion-${i}" id="quiz-label-suggestion-${i}">Proposition ${i}</label>
+                                    <button class="btn c-btn-secondary mx-2" data-i18n="newActivities.delete" id="quiz-button-suggestion-${i}" onclick="quizManager.deleteQuizSuggestion(${i})">Delete</button>
+                                </div>
+
+                                <div class="col-md-auto d-flex align-items-center">
+                                    <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="quiz-checkbox-${i}">
-                                        <label class="form-check-label" for="quiz-checkbox-${i}" id="label-quiz-${i}" data-i18n="classroom.activities.correctAnswer">Réponse correcte</label>
+                                        <label class="form-check-label" for="quiz-checkbox-${i}" data-i18n="classroom.activities.correctAnswer">
+                                            Réponse correcte
+                                        </label>
                                     </div>
                                 </div>
                             </div>
+                            <textarea id="quiz-suggestion-${i}" style="height:100px"></textarea>
                         </div>`;
-                  
+
         $('#quiz-suggestions-container').append(divToAdd);
+        quizManager.enableTextArea(`#quiz-suggestion-${i}`);
         $(`#quiz-button-suggestion-${i}`).localize();
         $(`#label-quiz-${i}`).localize();
+    }
+
+    enableTextArea(id, data = null) {
+        const btns = "fontcolor,underline,math,customimageupload,myimages,keys,screens";
+        const optMini = Main.getClassroomManager().returnCustomConfigWysibb(btns, 100)
+        $(id).wysibb(optMini);
+        if (data != null) {
+            $(id).forceInsertBbcode(data);
+        }
     }
     
     deleteQuizSuggestion(number) {
@@ -94,17 +108,17 @@ class QuizManager {
     }
 
     quizValidateActivity(correction = 1, isFromCourse = false) {
+        let activityId = isFromCourse ? coursesManager.actualCourse.activity : Activity.activity.id;
+        let activityLink = isFromCourse ? coursesManager.actualCourse.link : Activity.id;
+
         let studentResponse = [];
         for (let i = 1; i < $(`input[id^="student-quiz-checkbox-"]`).length+1; i++) {
             let res = {
-                inputVal: $(`#student-quiz-suggestion-${i}`).text(),
+                inputVal: $(`#student-quiz-suggestion-${i}`).attr("data-raw"),
                 isCorrect: $(`#student-quiz-checkbox-${i}`).is(':checked')
             }
             studentResponse.push(res);
         }
-
-        let activityId = isFromCourse ? coursesManager.actualCourse.activity : Activity.activity.id;
-        let activityLink = isFromCourse ? coursesManager.actualCourse.link : Activity.id;
         
         Main.getClassroomManager().saveNewStudentActivity(activityId, correction, null, JSON.stringify(studentResponse), activityLink).then((response) => {
             if (isFromCourse) {
@@ -120,27 +134,34 @@ class QuizManager {
         content = JSON.parse(activity.content);
         $('#quiz-suggestions-container').html('');
         for (let i = 1; i < solution.length+1; i++) {
-            let divToAdd = `<div class="form-group c-primary-form" id="quiz-group-${i}">
-                                <label for="quiz-suggestion-${i}" id="quiz-label-suggestion-${i}">Proposition ${i}</label>
-                                <button class="btn c-btn-grey mx-2" data-i18n="newActivities.delete" id="quiz-button-suggestion-${i}" onclick="quizManager.deleteQuizSuggestion(${i})">Delete</button>
-    
-                                <div class="input-group mt-3">
-                                    <input type="text" id="quiz-suggestion-${i}" class="form-control" value="${solution[i-1].inputVal}">
-                                    <div class="input-group-append">
-                                        <div class="input-group-text c-checkbox c-checkbox-grey">
-                                            <input class="form-check-input" type="checkbox" id="quiz-checkbox-${i}" ${solution[i-1].isCorrect ? "checked" : ""}>
-                                            <label class="form-check-label" for="quiz-checkbox-${i}" id="label-quizz-${i}"  data-i18n="classroom.activities.correctAnswer">Réponse correcte</label>
-                                        </div>
+
+        let divToAdd = `<div class="form-group c-primary-form" id="quiz-group-${i}">
+                            <div class="row my-1">
+                                <div class="col">
+                                    <label for="quiz-suggestion-${i}" id="quiz-label-suggestion-${i}">Proposition ${i}</label>
+                                    <button class="btn c-btn-secondary mx-2" data-i18n="newActivities.delete" id="quiz-button-suggestion-${i}" onclick="quizManager.deleteQuizSuggestion(${i})">Delete</button>
+                                </div>
+
+                                <div class="col-md-auto d-flex align-items-center">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="quiz-checkbox-${i}" ${solution[i-1].isCorrect ? "checked" : ""}>
+                                        <label class="form-check-label" for="quiz-checkbox-${i}" data-i18n="classroom.activities.correctAnswer">
+                                            Réponse correcte
+                                        </label>
                                     </div>
                                 </div>
-                            </div>`;
+                            </div>
+                            <textarea id="quiz-suggestion-${i}" style="height:100px"></textarea>
+                        </div>`;
+
             $('#quiz-suggestions-container').append(divToAdd);
+            quizManager.enableTextArea(`#quiz-suggestion-${i}`, solution[i-1].inputVal);
             $(`#quiz-button-suggestion-${i}`).localize();
             $(`#label-quizz-${i}`).localize();
         }
     
-        $('#quiz-states').htmlcode(bbcodeToHtml(content.states));
-        $('#quiz-hint').val(content.hint);
+        $('#quiz-states').forceInsertBbcode(content.states);
+        $('#quiz-hint').forceInsertBbcode(content.hint);
     
         if (activity.isAutocorrect) {
             $("#quiz-autocorrect").prop("checked", true);
@@ -153,7 +174,6 @@ class QuizManager {
     }
 
     showTeacherQuizActivity(contentParsed, Activity) {
-        $("#activity-states").html(bbcodeToHtml(contentParsed.states));
         $(`div[id^="teacher-suggestion-"]`).each(function() {
             $(this).remove();
         })
@@ -161,13 +181,32 @@ class QuizManager {
         let data = JSON.parse(Activity.solution);
         let htmlToPush = '';
         for (let i = 1; i < data.length+1; i++) {
-            htmlToPush += `<div class="input-group c-checkbox quiz-answer-container" id="qcm-field-${i}">
+            htmlToPush += `<div class="col-12 col-lg-5 form-check quiz-form-check" id="qcm-field-${i}">
                             <input class="form-check-input" type="checkbox" id="show-quiz-checkbox-${i}" ${data[i-1].isCorrect ? 'checked' : ''} onclick="return false;">
-                            <label class="form-check-label" for="quiz-checkbox-${i}" id="show-quiz-label-checkbox-${i}">${data[i-1].inputVal}</label>
+                            <label class="form-check-label" for="quiz-checkbox-${i}" id="show-quiz-label-checkbox-${i}">${bbcodeContentIncludingMathLive(data[i-1].inputVal)}</label>
                         </div>`;
         }
-        $('#activity-content-container').append(htmlToPush);
-    
+
+
+
+        $('#activity-content').html(htmlToPush);
+        quizManager.displayForShowTeacher(contentParsed);
+    }
+
+    showTeacherQuizActivityDoable(contentParsed, Activity) {
+        let contentDiv = document.getElementById('activity-content');
+        contentDiv.innerHTML = "";
+
+        let divActivityDoable = document.createElement('div');
+        divActivityDoable.id = "activity-doable" + Activity.id;
+        divActivityDoable.classList.add("activity-doable-quiz-teacher");
+
+        contentDiv.innerHTML = quizManager.createContentForQuiz(contentParsed.quiz.contentForStudent, true, false, true);
+        quizManager.displayForShowTeacher(contentParsed);
+    }
+
+    displayForShowTeacher(contentParsed) {
+        $("#activity-states").html(bbcodeContentIncludingMathLive(contentParsed.states));
         $("#activity-content-container").show();
         $("#activity-states-container").show();
     }
@@ -175,7 +214,7 @@ class QuizManager {
 
     manageDisplayQuiz(correction, content, correction_div, isFromCourse) {
         let course = isFromCourse ? "-course" : "";
-        $('#activity-states'+course).html(bbcodeToHtml(content.states));
+        $('#activity-states'+course).html(bbcodeContentIncludingMathLive(content.states));
         $('#activity-states-container'+course).show();
     
         if (UserManager.getUser().isRegular) {
@@ -202,8 +241,10 @@ class QuizManager {
             quizManager.displayQuizTeacherSide(isFromCourse);
             manageCorrectionDiv(correction_div, correction, isFromCourse);
         }
+
+        manageLabelForActivity();
     }
-    
+
     displayQuizTeacherSide(isFromCourse) {
         let course = isFromCourse ? "-course" : "";
         if (Activity.response != null) {
@@ -230,28 +271,29 @@ class QuizManager {
         }
     }
     
-    createContentForQuiz(data, doable = true, correction = false, preview = false) {
+    createContentForQuiz(data, doable = true, correction = false, preview = false, id = null) {
         manageLabelForActivity();
         let previewId = preview ? '-preview' : '';
         let correctionId = correction ? 'correction-' : '';
     
         let content = "";
+
         if (doable) {
             for (let i = 1; i < data.length+1; i++) {
-                content += ` <div class="input-group c-checkbox quiz-answer-container" id="qcm-doable-${i}${previewId}">
-                                <input class="form-check-input" type="checkbox" id="student-quiz-checkbox-${i}${previewId}" ${data[i-1].isCorrect ? "checked" : ""}>
-                                <label class="form-check-label" for="student-quiz-checkbox-${i}${previewId}" id="${correctionId}student-quiz-suggestion-${i}${previewId}">${data[i-1].inputVal}</label>
+                content += ` <div class="col-12 col-lg-5 form-check quiz-form-check" id="qcm-doable-${i}${previewId}">
+                                <input class="form-check-input" type="checkbox" id="student-quiz-checkbox${id != null ? "-"+id : ""}-${i}${previewId}" ${data[i-1].isCorrect ? "checked" : ""}>
+                                <label class="form-check-label" data-raw="${data[i-1].inputVal}" for="student-quiz-checkbox${id != null ? "-"+id : ""}-${i}${previewId}" id="${correctionId}student-quiz-suggestion${id != null ? "-"+id : ""}-${i}${previewId}">${bbcodeContentIncludingMathLive(data[i-1].inputVal)}</label>
                             </div>`;
             }
         } else {
             for (let i = 1; i < data.length+1; i++) {
-                content += ` <div class="input-group c-checkbox quiz-answer-container" id="qcm-not-doable-${i}">
-                                <input class="form-check-input" type="checkbox" id="student-quiz-checkbox-${i}" ${data[i-1].isCorrect ? "checked" : ""} onclick="return false">
-                                <label class="form-check-label" for="student-quiz-checkbox-${i}" id="${correctionId}student-quiz-suggestion-${i}">${data[i-1].inputVal}</label>
+                content += ` <div class="col-12 col-lg-5 form-check quiz-form-check" id="qcm-not-doable-${i}">
+                                <input class="form-check-input" type="checkbox" id="student-quiz-checkbox${id != null ? "-"+id : ""}-${i}" ${data[i-1].isCorrect ? "checked" : ""} onclick="return false">
+                                <label class="form-check-label" data-raw="${data[i-1].inputVal}" for="student-quiz-checkbox${id != null ? "-"+id : ""}-${i}" id="${correctionId}student-quiz-suggestion${id != null ? "-"+id : ""}-${i}">${bbcodeContentIncludingMathLive(data[i-1].inputVal)}</label>
                             </div>`;
             }
         }
-        return content;
+        return `<div class="d-flex flex-row flex-wrap justify-content-around w-100">${content}</div>`;
     }
 
     deleteQcmFields() {
@@ -285,6 +327,111 @@ class QuizManager {
         $('#preview-states').show();
         $('#preview-content').show();
         $('#activity-preview-div').show();
+    }
+
+    quizValidateActivityOnePageCourse(activityId, activityLink, correction) {
+        let studentResponse = [];
+        for (let i = 1; i < $(`input[id^="student-quiz-checkbox-${activityId}"]`).length+1; i++) {
+            let res = {
+                inputVal: $(`#student-quiz-suggestion${"-"+activityId}-${i}`).attr("data-raw"),
+                isCorrect: $(`#student-quiz-checkbox${"-"+activityId}-${i}`).is(':checked')
+            }
+            studentResponse.push(res);
+        }
+        
+        Main.getClassroomManager().saveNewStudentActivity(activityId, correction, null, JSON.stringify(studentResponse), activityLink).then((response) => {
+            quizManager.showErrors(response, activityId);
+            coursesManager.displayHintForOnePageCourse(response, activityId);
+            if (response.hasOwnProperty('activity')) {
+                coursesManager.manageValidateReponse(response);
+            }
+        });
+    }
+
+    renderQuizActivity(activityData, htmlContainer, idActivity) {
+        coursesManager.manageStatesAndContentForOnePageCourse(idActivity, htmlContainer, activityData);
+
+        if (activityData.doable) {
+            coursesManager.manageValidateBtnForOnePageCourse(idActivity, htmlContainer, activityData);
+        }
+    }
+
+    getManageDisplayQuiz(content, activity, correction_div) {
+        const activityData = {
+            states: null,
+            content: null,
+            correction: null,
+            doable: false,
+            type: 'quiz',
+            link: activity.id,
+            id: activity.activity.id,
+        }
+
+        activityData.states = bbcodeContentIncludingMathLive(content.states);
+        activityData.doable = activity.correction <= 1 || activity.correction == null;
+
+        if (activity.correction <= 1 || activity.correction == null) {
+            if (!UserManager.getUser().isRegular) {
+                if (activity.activity.response != null && activity.activity.response != '') {
+                    if (JSON.parse(activity.activity.response) != null && JSON.parse(activity.activity.response) != "") {
+                        activityData.content = quizManager.createContentForQuiz(JSON.parse(activity.activity.response), true, false, false, activity.activity.id);
+                    }
+                } else {
+                    activityData.content = quizManager.createContentForQuiz(content.quiz.contentForStudent, true, false, false, activity.activity.id);
+                }
+            }
+        } else if (activity.correction > 1) {
+            activityData.content = quizManager.returnCorrectedContent(activity);
+        }
+
+        return activityData;
+    }
+
+    returnCorrectedContent(activity) {
+        if (activity.response != null) {
+            let data = "";
+            if (activity.response != null && activity.response != "") {
+                data = JSON.parse(activity.response);
+            }
+            const solution = JSON.parse(activity.activity.solution);
+
+            let dataCorrected = "";
+            for (let i = 1; i < solution.length+1; i++) {
+                
+                let correctAnswer = false;
+                if (data[i-1].isCorrect == solution[i-1].isCorrect) {
+                    correctAnswer = true;
+                }
+
+                dataCorrected += ` <div class="col-12 col-lg-5 d-flex form-check quiz-form-check ${correctAnswer ? "quiz-answer-correct" : "quiz-answer-incorrect"}" id="qcm-not-doable-${i}">
+                                <input class="form-check-input" type="checkbox" id="student-quiz-checkbox-${i}" ${data[i-1].isCorrect ? "checked" : ""} onclick="return false">
+                                <label class="form-check-label" for="student-quiz-checkbox-${i}" id="correction-student-quiz-suggestion-${i}">${bbcodeContentIncludingMathLive(data[i-1].inputVal)}</label>
+                            </div>`;
+            }
+            return dataCorrected;
+        }
+    }
+
+    showErrors(response, activityId = null) {
+        if (!response.hasOwnProperty('badResponse')) {
+            return;
+        }
+
+        let activityTag = activityId != null ? `-${activityId}` : "";
+
+        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
+        document.querySelectorAll('.quiz-answer-incorrect').forEach((element) => {
+            element.classList.remove('quiz-answer-incorrect');
+        });
+
+        for (let i = 1; i < $(`input[id^="student-quiz-suggestion${activityTag}-"]`).length+1; i++) {
+            $(`#student-quiz-suggestion${activityTag}-'${i}`).parent().addClass('quiz-answer-correct');
+        }
+
+        for (let i = 0; i < response.badResponse.length; i++) {
+            //$('#student-quiz-suggestion-' + (response.badResponse[i]+1)).parent().addClass('quiz-answer-incorrect');
+            $(`#student-quiz-suggestion${activityTag}-${response.badResponse[i]+1}`).parent().addClass('quiz-answer-incorrect');
+        }
     }
 }
 

@@ -12,6 +12,7 @@ use Doctrine\ORM\ORMException;
 use Doctrine\DBAL\DBALException;
 
 use User\Controller\ControllerUser;
+use User\Entity\UserPremium;
 
 use Doctrine\DBAL\Driver\PDOException;
 use Learn\Controller\ControllerCourse;
@@ -113,15 +114,18 @@ try {
     $user = null;
     if (isset($_SESSION["id"])) {
         $user = $entityManager->getRepository('User\Entity\User')->find(intval($_SESSION["id"]))->jsonSerialize();
-        $storedClassroom = $entityManager->getRepository('Classroom\Entity\ClassroomLinkUser')->findOneBy(['user' => $_SESSION["id"]]);
+        $storedClassroom = $entityManager->getRepository('Classroom\Entity\ClassroomLinkUser')->findBy(['user' => $_SESSION["id"]]);
         if ($storedClassroom) {
-            $classroom = $storedClassroom->jsonSerialize();
-            $user["classroom"] = $classroom["classroom"]["id"];
+            $user["classroom"] = [];
+            foreach ($storedClassroom as $classroom) {
+                $classroom = $classroom->jsonSerialize();
+                $user["classroom"][] = $classroom["classroom"]["id"];
+            }
         }
         try {
             $regular = $entityManager->getRepository('User\Entity\Regular')
                 ->find(intval($_SESSION["id"]))->jsonSerialize();
-            $user['isRegular']  = $regular['email'];
+            $user['isRegular'] = $regular['email'];
         } catch (error $e) {
             $user['isRegular'] = false;
         }
@@ -144,13 +148,17 @@ try {
         }
     }
 
-    // get and scan the entire plugins folder
+    // get and scan the entire plugins folder for PHP files
     $pluginsDir = '../plugins';
     if (is_dir($pluginsDir)) {
         $pluginsFound = array_diff(scandir($pluginsDir), array('..', '.'));
 
         // scan each single plugin folder
         foreach ($pluginsFound as $singlePlugin) {
+            if (!is_dir("../plugins/$singlePlugin")) {
+                continue;
+            }
+
             $singlePluginFolders = array_diff(scandir("../plugins/$singlePlugin"), array('..', '.'));
 
             // convert snake_case from url param into PascalCase to find the right controller file to instanciate
@@ -266,11 +274,11 @@ try {
             echo (json_encode($controller->action($action, $_POST)));
             $log->info($action, OK);
             break;
-        case 'upload': 
+        case 'upload':
             $action = lcfirst(str_replace('_', '', ucwords($action, '_')));
             $controllerUpload = new ControllerUpload($entityManager, $user);
             echo json_encode(call_user_func(
-                array($controllerUpload,$action)
+                array($controllerUpload, $action)
             ));
             break;
         case 'user_link_course':

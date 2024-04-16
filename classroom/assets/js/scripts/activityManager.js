@@ -14,18 +14,27 @@ function setTextArea() {
     // FillIn
     $("#fill-in-states").wysibb(options);
     $("#fill-in-content").wysibb(options);
+    $("#fill-in-hint").wysibb(options);
 
     // DragAndDrop
     $("#drag-and-drop-states").wysibb(options);
     $("#drag-and-drop-content").wysibb(options);
+    $("#drag-and-drop-hint").wysibb(options);
 
-     // Quiz
-     $("#quiz-states").wysibb(options);
+    // Quiz
+    $("#quiz-states").wysibb(options);
+    $("#quiz-hint").wysibb(options);
+
+    // quiz rework
+    const btns = "fontcolor,underline,math,customimageupload,myimages,keys,screens";
+    const optMini = Main.getClassroomManager().returnCustomConfigWysibb(btns, 100)
+    $("#quiz-suggestion-1").wysibb(optMini);
 }
 
 // autocorrect modification pas pris en compte
 
 function LtiDefaultCode(activityType, isUpdate) {
+    Main.getClassroomManager().setActivityIsLti(true);
     document.getElementById('content-forward-button').style.display = 'none';
     $("#activity-custom").show();
     if (isUpdate) {
@@ -36,8 +45,11 @@ function LtiDefaultCode(activityType, isUpdate) {
 }
 
 function launchCustomActivity(activityType, isUpdate = false, callback = false) {
-    setTextArea();
 
+    setTextArea();
+    // Reset the tag list
+    manageTagList([]); 
+    
     const contentForwardButtonElt = document.getElementById('content-forward-button');
     contentForwardButtonElt.style.display = 'inline-block';
     if(!isUpdate) {
@@ -47,7 +59,9 @@ function launchCustomActivity(activityType, isUpdate = false, callback = false) 
     hideAllActivities();
     setAddFieldTooltips();
     Main.getClassroomManager()._createActivity.id = activityType;
-    Main.getClassroomManager()._createActivity.function = "create";
+    if (!isUpdate) {
+        Main.getClassroomManager()._createActivity.function = "create";
+    }
 
     Main.getClassroomManager().isActivitiesRestricted(null, activityType).then((response) => {
         if (response.Limited == false && activityType != "appOutDated") {
@@ -89,12 +103,13 @@ function launchCustomActivity(activityType, isUpdate = false, callback = false) 
             }
         }
     });
+    breadcrumbManager.addItemCreateActivity(activityType);
 }
 
 function contentBackward() {
     Main.getClassroomManager().getAllApps().then((apps) => {
-        activitiesCreation(apps);
         navigatePanel('classroom-dashboard-proactivities-panel-teacher', 'dashboard-activities-teacher');
+        activitiesCreation(apps);
     })
 }
 
@@ -169,10 +184,11 @@ function titleBackward() {
     }
 }
 
+
 /**
  * Title part
  */
- function titleForward() {
+function titleForward() {
     Main.getClassroomManager()._createActivity.title = $('#global_title').val();
     $('#activity-title-forward').attr('disabled', true);
     // Check if the title is empty
@@ -186,14 +202,15 @@ function titleBackward() {
             solution = JSON.stringify(Main.getClassroomManager()._createActivity.solution),
             tolerance = Main.getClassroomManager()._createActivity.tolerance,
             autocorrect = Main.getClassroomManager()._createActivity.autocorrect,
-            folder = foldersManager.actualFolder;
+            folder = foldersManager.actualFolder,
+            tags = getAllTagId();
 
         if (type == "dragAndDrop" || type == "fillIn" || type == "quiz") {
             autocorrect = true;
         }
 
         if (Main.getClassroomManager()._createActivity.function == "create") {  
-            Main.getClassroomManager().createNewActivity(title, type, content, solution, tolerance, autocorrect, folder).then((response) => {
+            Main.getClassroomManager().createNewActivity(title, type, content, solution, tolerance, autocorrect, folder, tags).then((response) => {
                 if (response.success == true) {
                     Main.getClassroomManager()._lastCreatedActivity = response.id;
                     displayNotification('#notif-div', "classroom.notif.activityCreated", "success", `'{"activityTitle": "${title}"}'`);
@@ -204,7 +221,7 @@ function titleBackward() {
                 $('#activity-title-forward').attr('disabled', false);
             });
         } else if (Main.getClassroomManager()._createActivity.function == "update") {
-            Main.getClassroomManager().updateActivity(ClassroomSettings.activity, title, type, content, solution, tolerance, autocorrect).then((response) => {
+            Main.getClassroomManager().updateActivity(ClassroomSettings.activity, title, type, content, solution, tolerance, autocorrect, tags).then((response) => {
                 if (response.success == true) {
                     Main.getClassroomManager()._lastCreatedActivity = response.id;
                     displayNotification('#notif-div', "classroom.notif.activityChanged", "success", `'{"activityTitle": "${title}"}'`);
@@ -220,6 +237,18 @@ function titleBackward() {
 }
 
 
+function defaultCallback(activity, correction, interface) {
+    if (!interface) {
+        navigatePanel('classroom-dashboard-activity-panel-success', 'dashboard-activities');
+        actualizeStudentActivities(activity, correction);
+        $("#activity-validate").attr("disabled", false);
+    } else {
+        actualizeStudentActivities(activity, correction)
+        $("#activity-validate").attr("disabled", false);
+        navigatePanel('classroom-dashboard-activity-panel-correcting', 'dashboard-classes-teacher')
+    }
+}
+
 /**
  * Validation pipeline for the new activity
  */
@@ -228,12 +257,11 @@ function validateActivity(correction) {
     // CustomActivity = Manager for the custom activity
     const funct = customActivity.activityAndCase.filter(activityValidate => activityValidate[0] == Activity.activity.type)[0];
     if (funct) {
-        funct[1](funct[2] ? correction : null);
+        funct[1](funct[2] ? correction : null, false, defaultCallback);
     } else {
-        defaultProcessValidateActivity(correction);
+        defaultProcessValidateActivity(correction, false, defaultCallback);
     }
 }
-
 
 function validateDefaultResponseManagement(response) {
     $("#activity-validate").attr("disabled", false);
@@ -267,6 +295,8 @@ function responseManager(response = null, type = null) {
 }
 
 function activitiesCreation(apps) {
+
+    breadcrumbManager.addItemCreateActivityEmpty();
 
     let titleRoad = "newActivities.ActivitiesData.title.";
     let descriptionRoad = "newActivities.ActivitiesData.description.";
@@ -423,7 +453,7 @@ function ActivityPreviewBeforeCreation(type) {
     resetPreviewViews();
     
     $title.html(Main.getClassroomManager()._createActivity.title);
-    $statesText.html(bbcodeToHtml(Main.getClassroomManager()._createActivity.content.states));
+    $statesText.html(bbcodeContentIncludingMathLive(Main.getClassroomManager()._createActivity.content.states));
     $title.show();
 
     let func = customActivity.managePreviewCustom.filter(activityPreview => activityPreview[0] == type)[0];
@@ -470,49 +500,16 @@ function resetPreviewViews() {
     });
 }
 
-
-
 function saveActivitiesAndCoursesResponseManager(activityType = null, response = null, isFromCourse = false) {
     let courseIndicator = isFromCourse ? "-course" : "";
-
     if (activityType == 'fill-in') {
-        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
-        
-        let lengthResponse = $(`input[id^="student-fill-in-field-"]`).length;
-        for (let i = 1; i < lengthResponse+1; i++) {
-            if (response.badResponse.includes(i-1)) {
-                $(`#student-fill-in-field-${i}`).css("border","2px solid var(--correction-0)");
-            } else {
-                $(`#student-fill-in-field-${i}`).css("border","2px solid var(--correction-3)");
-            }
-        }
-
+        fillInManager.showErrors(response);
         hintManager(response, courseIndicator)
     } else if (activityType == 'drag-and-drop') {
-        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
-        for (let i = 0; i < $(`span[id^="dz-"]`).length; i++) {
-            $('#dz-' + i).css("border","1px solid var(--correction-3)");
-        }
-
-        for (let i = 0; i < response.badResponse.length; i++) {
-            $('#dz-' + (response.badResponse[i])).css("border","1px solid var(--correction-0)");
-        }
-
+        dragAndDropManager.showErrors(response);
         hintManager(response, courseIndicator)
     } else if (activityType == 'quiz') {
-        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
-        document.querySelectorAll('.quiz-answer-incorrect').forEach((element) => {
-            element.classList.remove('quiz-answer-incorrect');
-        });
-
-        for (let i = 1; i < $(`input[id^="student-quiz-suggestion-"]`).length+1; i++) {
-            $('#student-quiz-suggestion-' + i).parent().addClass('quiz-answer-correct');
-        }
-
-        for (let i = 0; i < response.badResponse.length; i++) {
-            $('#student-quiz-suggestion-' + (response.badResponse[i]+1)).parent().addClass('quiz-answer-incorrect');
-        }
-
+        quizManager.showErrors(response);
         hintManager(response, courseIndicator)
     } else if (activityType == 'free') {
         displayNotification('#notif-div', "classroom.activities.wrongAnswer", "error");
@@ -523,14 +520,18 @@ function hintManager(response, courseIndicator = "") {
     if (response.hasOwnProperty("hint")) {
         if (response.hint != null && response.hint != "") {
             $(`#activity-hint-container${courseIndicator}`).show();
-            $(`#activity-hint${courseIndicator}`).text(response.hint);
+            $(`#activity-hint${courseIndicator}`).html(bbcodeContentIncludingMathLive(response.hint));
         }
     }
 }
 
 /* Now include course to avoid duplicate */
-function defaultProcessValidateActivity(correction = null, isFromCourse = false) {
+function defaultProcessValidateActivity(correction = null, isFromCourse = false, callback = null, activityOverride = null) {
     $("#activity-validate").attr("disabled", "disabled");
+
+    if (activityOverride != null) {
+        Activity = activityOverride;
+    }
 
     let getInterface = tryToParse(Activity.activity.content),
         vittaIframeRegex = /\[iframe\].*?vittascience(|.com)\/([a-z0-9]{5,12})\/?/gm,
@@ -547,32 +548,16 @@ function defaultProcessValidateActivity(correction = null, isFromCourse = false)
 
     if (!interfaceData) {
         let correction = 2
-        if (isFromCourse) {
-            Main.getClassroomManager().saveStudentActivity(false, false, Activity.id, correction, 4).then(function (activity) {
-                if (typeof activity.errors != 'undefined') {
-                    for (let error in activity.errors) {
-                        displayNotification('#notif-div', `classroom.notif.${error}`, "error");
-                        $("#activity-validate").attr("disabled", false);
-                    }
-                } else  {
-                    coursesManager.manageAllActivityResponse(activity);
-                }
-            })
-        } else {
-            Main.getClassroomManager().saveStudentActivity(false, false, Activity.id, correction, 4).then(function (activity) {
-                if (typeof activity.errors != 'undefined') {
-                    for (let error in activity.errors) {
-    
-                        displayNotification('#notif-div', `classroom.notif.${error}`, "error");
-                        $("#activity-validate").attr("disabled", false);
-                    }
-                } else  {
-                    navigatePanel('classroom-dashboard-activity-panel-success', 'dashboard-activities');
-                    actualizeStudentActivities(activity, correction);
+        Main.getClassroomManager().saveStudentActivity(false, false, Activity.id, correction, 4).then(function (activity) {
+            if (typeof activity.errors != 'undefined') {
+                for (let error in activity.errors) {
+                    displayNotification('#notif-div', `classroom.notif.${error}`, "error");
                     $("#activity-validate").attr("disabled", false);
                 }
-            })
-        }
+            } else  {
+               callback(activity, correction, interfaceData);
+            }
+        })
         window.localStorage.classroomActivity = null
     } else if (Activity.autocorrection == false) {
         let correction = 1;
@@ -585,33 +570,150 @@ function defaultProcessValidateActivity(correction = null, isFromCourse = false)
             projectParsed = null;
         }
 
-        if (isFromCourse) {
-            Main.getClassroomManager().saveStudentActivity(projectParsed, interfaceName, Activity.id).then(function (activity) {
-                if (typeof activity.errors != 'undefined') {
-                    for (let error in activity.errors) {
-                        displayNotification('#notif-div', `classroom.notif.${error}`, "error");
-                        $("#activity-validate").attr("disabled", false);
-                    }
-                } else {
-                    coursesManager.manageAllActivityResponse(activity);
-                }
-            })
-        } else {
-            Main.getClassroomManager().saveStudentActivity(projectParsed, interfaceName, Activity.id).then(function (activity) {
-                if (typeof activity.errors != 'undefined') {
-                    for (let error in activity.errors) {
-                        displayNotification('#notif-div', `classroom.notif.${error}`, "error");
-                        $("#activity-validate").attr("disabled", false);
-                    }
-                } else {
-                    actualizeStudentActivities(activity, correction)
+        Main.getClassroomManager().saveStudentActivity(projectParsed, interfaceName, Activity.id).then(function (activity) {
+            if (typeof activity.errors != 'undefined') {
+                for (let error in activity.errors) {
+                    displayNotification('#notif-div', `classroom.notif.${error}`, "error");
                     $("#activity-validate").attr("disabled", false);
-                    navigatePanel('classroom-dashboard-activity-panel-correcting', 'dashboard-classes-teacher')
                 }
-            })
-        }
+            } else {
+                callback(activity, correction, interfaceData);
+            }
+        })
     } else {
         $("#activity-validate").attr("disabled", false);
         window.localStorage.autocorrect = true
     }
+}
+
+/* 
+    Tags management
+*/
+
+const addTagToList = document.getElementById('add-tag-to-list');
+if (addTagToList) {
+    addTagToList.addEventListener('click', () => {
+        const tagListSelect = document.getElementById('taglist-select');
+        const tagList = document.getElementById('taglist');
+        const selectedTags = tagListSelect.selectedOptions;
+
+        // check if the tag is already in the list with the dataset
+        const tagListDivs = tagList.querySelectorAll('div');
+        for (let i = 0; i < tagListDivs.length; i++) {
+            const tagListDiv = tagListDivs[i];
+            if (tagListDiv.dataset.tags == selectedTags[0].value) {
+                displayNotification('#notif-div', "classroom.notif.tagAlreadyInList", "error");
+                return;
+            }
+        }
+
+        for (let i = 0; i < selectedTags.length; i++) {
+            const tag = selectedTags[i];
+            const tagDiv = document.createElement('div');
+            tagDiv.dataset.tags = tag.value;
+            tagDiv.classList.add('tag');
+            tagDiv.classList.add('m-2');
+            tagDiv.classList.add('px-2');
+            tagDiv.classList.add('c-btn-primary');
+            tagDiv.innerHTML = tag.innerHTML + '<i class="fas fa-times ms-2"></i>';
+            tagList.appendChild(tagDiv);
+        }
+
+        // add event listener to remove the tag on the i element
+        const tagDivs = tagList.querySelectorAll('div');
+        for (let i = 0; i < tagDivs.length; i++) {
+            const tagDiv = tagDivs[i];
+            tagDiv.addEventListener('click', () => {
+                tagDiv.remove();
+            });
+        }
+
+    });
+}
+
+function getAllTagId() {
+    const tagList = document.getElementById('taglist');
+
+    if (tagList == null) {
+        return [];
+    }
+
+    const tagDivs = tagList.querySelectorAll('div');
+    let tagIds = [];
+    for (let i = 0; i < tagDivs.length; i++) {
+        const tagDiv = tagDivs[i];
+        tagIds.push(tagDiv.dataset.tags);
+    }
+    return tagIds;
+}
+
+
+function manageTagList(taglist) {
+    const eTagList = document.getElementById('taglist');
+    if (eTagList == null) {
+        return;
+    }
+
+    eTagList.innerHTML = '';
+    for (let i = 0; i < taglist.length; i++) {
+        // Main.getClassroomManager().tagList find
+        const tag = Main.getClassroomManager().tagList.find((tag) => {
+            return tag.id == taglist[i];
+        });
+
+        const tagDiv = document.createElement('div');
+        tagDiv.dataset.tags = tag.id;
+        tagDiv.classList.add('tag');
+        tagDiv.classList.add('m-2');
+        tagDiv.classList.add('px-2');
+        tagDiv.classList.add('c-btn-primary');
+        tagDiv.innerHTML = tag.name + '<i class="fas fa-times ms-2"></i>';
+        eTagList.appendChild(tagDiv);
+    }
+
+    // add event listener to remove the tag on the i element
+    const tagDivs = eTagList.querySelectorAll('div');
+    for (let i = 0; i < tagDivs.length; i++) {
+        const tagDiv = tagDivs[i];
+        tagDiv.addEventListener('click', () => {
+            tagDiv.remove();
+        });
+    }
+}
+
+
+
+function loadActivityContent(doable = false) {
+    if (IsJsonString(Activity.content)) {
+        
+        const contentParsed = JSON.parse(Activity.content);
+        let funct = null;
+
+        if (doable) {
+            funct = customActivity.getTeacherActivityCustomDoable.filter(activityValidate => activityValidate[0] == Activity.type)[0];
+        } else {
+            funct = customActivity.getTeacherActivityCustom.filter(activityValidate => activityValidate[0] == Activity.type)[0];
+        }
+
+        if (funct) { 
+            funct[1](contentParsed, Activity);
+        } else {
+            // LTI Activity
+            if (Activity.isLti) {
+                launchLtiResource(Activity.id, Activity.type, JSON.parse(Activity.content).description);
+            } else {
+                // Non core and non LTI Activity fallback
+                $("#activity-content").html(bbcodeToHtml(contentParsed));
+                $("#activity-content-container").show();
+            }
+        }      
+    } else {
+        $('#activity-content').html(bbcodeToHtml(Activity.content))
+        $("#activity-content-container").show();
+    }
+
+    $('#activity-introduction').hide();
+    $('#activity-validate').hide();
+
+    breadcrumbManager.setActivityTitle(Activity.title);
 }

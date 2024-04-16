@@ -28,6 +28,15 @@ class CustomActivity {
             ["dragAndDrop", dragAndDropManager.showTeacherDragAndDropActivity],
         ];
 
+        
+        this.getTeacherActivityCustomDoable = [
+            ["free", freeManager.showTeacherFreeActivityDoable],
+            ["reading", readingManager.showTeacherReadingActivityDoable],
+            ["fillIn", fillInManager.showTeacherFillInActivityDoable],
+            ["quiz", quizManager.showTeacherQuizActivityDoable],
+            ["dragAndDrop", dragAndDropManager.showTeacherDragAndDropActivityDoable],
+        ];
+
         this.manageDisplayCustom = [
             ['free', freeManager.manageDisplayFree],
             ['reading', readingManager.manageDisplayReading],
@@ -35,6 +44,22 @@ class CustomActivity {
             ['quiz', quizManager.manageDisplayQuiz],
             ['dragAndDrop', dragAndDropManager.manageDisplayDragAndDrop],
             ['custom', manageDisplayCustom],
+        ];
+
+        this.getManageDisplayCustom = [
+            ['free', freeManager.getManageDisplayFree],
+            ['reading', readingManager.getManageDisplayReading],
+            ['fillIn', fillInManager.getManageDisplayFillIn],
+            ['quiz', quizManager.getManageDisplayQuiz],
+            ['dragAndDrop', dragAndDropManager.getManageDisplayDragAndDrop],
+        ];
+
+        this.renderActivities = [
+            ['free', freeManager.renderFreeActivity],
+            ['reading', readingManager.renderReadingActivity],
+            ['fillIn', fillInManager.renderFillInActivity],
+            ['quiz', quizManager.renderQuizActivity],
+            ['dragAndDrop', dragAndDropManager.renderDragAndDropActivity],
         ];
 
         this.manageUpdateCustom = [
@@ -55,6 +80,13 @@ class CustomActivity {
             ['dragAndDrop', dragAndDropManager.dragAndDropPreview],
         ];
 
+        this.activityValidateOnePageCourse = [
+            ['free', freeManager.freeValidateActivityOnePageCourse],
+            ['fillIn', fillInManager.fillInValidateActivityOnePageCourse],
+            ['quiz', quizManager.quizValidateActivityOnePageCourse],
+            ['dragAndDrop', dragAndDropManager.dragAndDropValidateActivityOnePageCourse],
+        ];
+
         this.normalMedia = true;
         this.appName = null;
         this.mediaItems = [];
@@ -64,6 +96,7 @@ class CustomActivity {
         this.totalItems = 0;
         this.paginationDiv = document.getElementById("app-media-galery-pagination");
         this.selectedItem = null;
+        this.activityToImport = null;
     }
 
     init() {
@@ -145,6 +178,7 @@ class CustomActivity {
                                 </div>`;
             });
         } else {
+
             this.mediaItems.forEach((element, key) => {
                 document.getElementById("app-media-galery-container").innerHTML += 
                                 `<div class="card m-2 app-media-galery-item" style="width: 18rem;" data-name="${element.title}" style="display:none;">

@@ -118,7 +118,7 @@ const classroomModals = {
         <p class="text-center" data-i18n="classroom.modals.settingsTeacher.passwordDescription"></p>
         <div class="d-flex justify-content-center">
             <form class="pwd-display-stud pwd-display-stud-modal" href="#">
-                <input type="password" readonly class="modal-pwd" id="password-display-area" autocomplete="off"><i class="classroom-clickable fas fa-low-vision ml-2 password-display-toggler"></i>
+                <input type="password" readonly class="modal-pwd" id="password-display-area" autocomplete="off"><i class="classroom-clickable fas fa-low-vision ms-2 password-display-toggler"></i>
             </form>
             
             <button class="btn c-btn-secondary" id="pwd-change-modal">Réinitialiser <i class="fas fa-chevron-right"></i></button>`,
@@ -163,7 +163,7 @@ const classroomModals = {
                                 <span data-i18n="manager.profil.onlyVisibleGroupAdmin">Uniquement visible par vous en tant qu'administrateur de groupe :</span>
                             </legend>
                             <button class="theme-group-admin btn mb-2 c-btn-outline-primary c-btn-dashboard" onclick="switchToGroupAdmin()" id="groupadmin-switch-button" style="display:none;"><span
-                                    data-i18n="manager.profil.groupAdmin" class="text-span-initial mr-1"></span>
+                                    data-i18n="manager.profil.groupAdmin" class="text-span-initial me-1"></span>
                                     <i class="fas fa-chevron-right"></i>
                             </button>
                             </fieldset>
@@ -177,7 +177,7 @@ const classroomModals = {
                                         <span data-i18n="manager.profil.onlyVisiblemanager">Uniquement visible par vous en tant que super admin :</span>
                                     </legend>
                                     <button class="theme-super-admin btn mb-2 c-btn-outline-primary c-btn-dashboard" onclick="switchTomanager()" id="manager-switch-button" style="display:none;">
-                                        <span data-i18n="manager.profil.manager" class="text-span-initial mr-1"></span>
+                                        <span data-i18n="manager.profil.manager" class="text-span-initial me-1"></span>
                                         <i class="fas fa-chevron-right"></i>
                                 </button>
                             </fieldset>
@@ -207,9 +207,9 @@ const classroomModals = {
             title: 'classroom.modals.listClass.title'
         },
         content: `
-        <p data-i18n="classroom.modals.listClass.description" data-i18n-options={"demoStudent":"${capitalizedDemoStudentName}"}>Vous pouvez tester en toute simplicité l'interface en tant qu'apprenant, et revenir à tout moment à votre profil d'enseignant. La progression en tant qu'apprenant sera sauvegardée sur le compte {{demoStudent}}.</p>
+        <p data-i18n="classroom.modals.listClass.description" data-i18n-options={"demoStudent":"${capitalizedDemoStudentName.replace(' ', '&nbsp;')}"}>Vous pouvez tester en toute simplicité l'interface en tant qu'apprenant, et revenir à tout moment à votre profil d'enseignant. La progression en tant qu'apprenant sera sauvegardée sur le compte {{demoStudent}}.</p>
         <div id="list-classes" class="mx-5 c-primary-form"></div>
-        <button class="btn  mb-2 c-btn-primary" id="mode-student-check" onclick="modeApprenant()" > <span class="mr-1" data-i18n="classroom.modals.listClass.switchButton">Passer en mode apprenant</span> <i class="fas fa-cog"></i></button>
+        <button class="btn  mb-2 c-btn-primary" id="mode-student-check" onclick="modeApprenant()" > <span class="me-1" data-i18n="classroom.modals.listClass.switchButton">Passer en mode apprenant</span> <i class="fas fa-cog"></i></button>
                 `,
         footer: ``
     },
@@ -238,7 +238,7 @@ const classroomModals = {
     <button class="btn btn-lg c-btn-primary" onclick="goToActivityPanel()"><span data-i18n="classroom.modals.addActivity.attributeActivity.button">Attribuer </span><i class="fas fa-chevron-right"></i></button>
     <div class="d-flex justify-content-center modal-separator mt-4 mb-4"><span data-i18n="classroom.modals.addActivity.orSeparator"></span></div>
     <h4 data-i18n="classroom.modals.addActivity.createActivity.title">Créer une activité puis l'attribuer</h4>
-    <button class="btn btn-lg c-btn-secondary" onclick="goToCreateActivityPanel()"><span data-i18n="classroom.modals.addActivity.createActivity.button">Créer une activité </span><i class="fas fa-chevron-right"></i></button>
+    <button class="btn btn-lg c-btn-secondary" onclick="showExercicePanel()"><span data-i18n="classroom.modals.addActivity.createActivity.button">Créer une activité </span><i class="fas fa-chevron-right"></i></button>
     </div>
                 `,
         footer: ``
@@ -269,13 +269,13 @@ const classroomModals = {
                 <input class="col-5 student-form-name" type="text">
             </div>
         </div>
-        <button id="create-classroom-add-student-to-list" class="save-student-in-classroom c-btn-primary m-3"><i class="fas fa-save"></i> <span class="ml-1" data-i18n="clsave-student-in-classroomassroom.modals.addStudent.addStudentButton">Ajouter l'apprenant</span></button>
+        <button id="create-classroom-add-student-to-list" class="save-student-in-classroom c-btn-primary m-3"><i class="fas fa-save"></i> <span class="ms-1" data-i18n="clsave-student-in-classroomassroom.modals.addStudent.addStudentButton">Ajouter l'apprenant</span></button>
         <div class="d-flex flex-column justify-content-center align-items-center">
             <div class="d-flex justify-content-center modal-separator mt-4 mb-4">
                 <span data-i18n="classroom.modals.addActivity.orSeparator">OU</span>
             </div>
             <button class="btn c-btn-secondary" onclick="openCsvModal();">
-                <span data-i18n="classroom.modals.addStudent.addStudentByCsvButton">Ajouter un fichier d'apprenants (.csv)</span><i class="fas fa-chevron-right ml-1"></i>
+                <span data-i18n="classroom.modals.addStudent.addStudentByCsvButton">Ajouter un fichier d'apprenants (.csv)</span><i class="fas fa-chevron-right ms-1"></i>
             </button>
         </div>`,
         footer: ``
@@ -293,13 +293,13 @@ const classroomModals = {
                 <input class="col-5 student-form-name" type="text">
             </div>
         </div>
-        <button id="update-classroom-add-student-to-list" class="btn save-student-in-classroom c-btn-primary m-3"><i class="fas fa-save"></i> <span class="ml-1" data-i18n="classroom.modals.addStudent.addStudentButton">Ajouter l'apprenant</span></button>
+        <button id="update-classroom-add-student-to-list" class="btn save-student-in-classroom c-btn-primary m-3"><i class="fas fa-save"></i> <span class="ms-1" data-i18n="classroom.modals.addStudent.addStudentButton">Ajouter l'apprenant</span></button>
         <div class="d-flex flex-column justify-content-center align-items-center">
             <div class="d-flex justify-content-center modal-separator mt-4 mb-4">
                 <span data-i18n="classroom.modals.addActivity.orSeparator">OU</span>
             </div>
             <button class="btn c-btn-secondary" onclick="openCsvModal(true);">
-                <span data-i18n="classroom.modals.addStudent.addStudentByCsvButton">Ajouter un fichier d'apprenants (.csv)</span><i class="fas fa-chevron-right ml-1"></i>
+                <span data-i18n="classroom.modals.addStudent.addStudentByCsvButton">Ajouter un fichier d'apprenants (.csv)</span><i class="fas fa-chevron-right ms-1"></i>
             </button>
         </div>`,
         footer: ``
@@ -317,13 +317,13 @@ const classroomModals = {
                 <input class="col-5 student-form-name" type="text">
             </div>
         </div>
-        <button id="add-student-to-classroom" class="btn save-student-in-classroom c-btn-primary m-3"><i class="fas fa-save"></i> <span class="ml-1" data-i18n="classroom.modals.addStudent.addStudentButton">Ajouter l'apprenant</span></button>
+        <button id="add-student-to-classroom" class="btn save-student-in-classroom c-btn-primary m-3"><i class="fas fa-save"></i> <span class="ms-1" data-i18n="classroom.modals.addStudent.addStudentButton">Ajouter l'apprenant</span></button>
         <div class="d-flex flex-column justify-content-center align-items-center">
             <div class="d-flex justify-content-center modal-separator mt-4 mb-4">
                 <span data-i18n="classroom.modals.addActivity.orSeparator">OU</span>
             </div>
             <button class="btn c-btn-secondary" onclick="openCsvModal();">
-                <span data-i18n="classroom.modals.addStudent.addStudentByCsvButton">Ajouter un fichier d'apprenants (.csv)</span><i class="fas fa-chevron-right ml-1"></i>
+                <span data-i18n="classroom.modals.addStudent.addStudentByCsvButton">Ajouter un fichier d'apprenants (.csv)</span><i class="fas fa-chevron-right ms-1"></i>
             </button>
         </div>`,
         footer: ``
@@ -393,7 +393,7 @@ const classroomModals = {
         },
         content: `<div class="container-fluid">
 
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-group col-md">
                 <label for="u_firstname" data-i18n="[html]manager.profil.firstname">Prénom <span class="c-text-red">*</span></label>
                 <input type="text" class="form-control" id="u_firstname">
@@ -408,7 +408,7 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-group col-md">
                 <label for="u_mail" data-i18n="[html]manager.profil.email">Adresse E-mail <span class="c-text-red">*</span></label>
                 <input type="email" class="form-control" id="u_mail">
@@ -419,12 +419,12 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row c-secondary-form mb-2" id="manager_bio">
+        <div class="row c-secondary-form mb-2" id="manager_bio">
             <label for="u_bio" data-i18n="[html]manager.profil.bio">Bio <span class="c-text-red">*</span></label>
             <textarea class="form-control" id="u_bio" rows="3"></textarea>
         </div>
     
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-check form-check-inline c-checkbox">
                 <input class="form-check-input" type="checkbox" id="u_is_admin">
                 <label class="form-check-label" for="u_is_admin" data-i18n="manager.users.admin">
@@ -433,7 +433,7 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row form-group c-secondary-form">
+        <div class="row form-group c-secondary-form">
             <div class="form-check form-check-inline c-checkbox">
                 <input class="form-check-input" type="checkbox" id="u_is_teacher">
                 <label class="form-check-label" for="u_is_teacher" data-i18n="manager.users.teacher">
@@ -442,7 +442,7 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row c-secondary-form" id="user_teacher_infos" style="display: none;" >
+        <div class="row c-secondary-form" id="user_teacher_infos" style="display: none;" >
             <div class="form-group col-md" id="section_teacher_grade">
                 <select class="form-control" id="user_teacher_grade">
                     <option selected value="0" data-i18n="manager.users.teacherGrades.0">Primaire</option>
@@ -522,7 +522,7 @@ const classroomModals = {
         },
         content: `<div class="container-fluid">
         <input type="hidden" class="form-control" id="update_u_id">
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-group col-md">
                 <label for="update_u_firstname" data-i18n="[html]manager.profil.firstname">Prénom <span class="c-text-red">*</span></label>
                 <input type="text" class="form-control" id="update_u_firstname">
@@ -537,7 +537,7 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-group col-md">
                 <label for="update_u_mail" data-i18n="[html]manager.profil.email">Adresse E-mail <span class="c-text-red">*</span></label>
                 <input type="email" class="form-control" id="update_u_mail">
@@ -548,12 +548,12 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row c-secondary-form mb-2" id="manager_update_bio">
+        <div class="row c-secondary-form mb-2" id="manager_update_bio">
             <label for="update_u_bio" data-i18n="[html]manager.profil.bio">Bio <span class="c-text-red">*</span></label>
             <textarea class="form-control" id="update_u_bio" rows="3"></textarea>
         </div>
     
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-check form-check-inline c-checkbox">
                 <input type="checkbox" id="update_u_is_active">
                 <label class="form-check-label" for="update_u_is_active" data-i18n="manager.account.active">
@@ -561,7 +561,7 @@ const classroomModals = {
                 </label>
             </div>
     
-            <div class="form-check form-check-inline c-checkbox ml-3">
+            <div class="form-check form-check-inline c-checkbox ms-3">
                 <input type="checkbox" id="update_u_is_admin">
                 <label class="form-check-label" for="update_u_is_admin" data-i18n="manager.users.admin">
                     Administrateur
@@ -569,7 +569,7 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row form-group c-secondary-form">
+        <div class="row form-group c-secondary-form">
             <div class="c-checkbox">
                 <input class="form-check-input" type="checkbox" id="update_u_is_teacher">
                 <label class="form-check-label" for="update_u_is_teacher" data-i18n="manager.users.teacher">
@@ -578,7 +578,7 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row c-secondary-form" id="update_user_teacher_infos" style="display: none;">
+        <div class="row c-secondary-form" id="update_user_teacher_infos" style="display: none;">
             <div class="form-group col-md" id="section_teacher_update_grade">
                 <select class="form-control" id="update_user_teacher_grade">
                     <option selected value="0" data-i18n="manager.users.teacherGrades.0">Primaire</option>
@@ -631,7 +631,7 @@ const classroomModals = {
             title: 'manager.buttons.user.createA'
         },
         content: `<div class="container-fluid">
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-group col-md">
                 <label for="u_firstname_ga" data-i18n="[html]manager.profil.firstname">Prénom <span class="c-text-red">*</span></label>
                 <input type="text" class="form-control" id="u_firstname_ga">
@@ -646,7 +646,7 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-group col-md">
                 <label for="u_mail_ga" data-i18n="[html]manager.profil.email">Adresse E-mail <span class="c-text-red">*</span></label>
                 <input type="email" class="form-control" id="u_mail_ga">
@@ -662,7 +662,7 @@ const classroomModals = {
             <textarea class="form-control" id="u_bio_ga" rows="3"></textarea>
         </div>
     
-        <div class="form-row c-secondary-form" id="user_teacher_infos_ga">
+        <div class="row c-secondary-form" id="user_teacher_infos_ga">
             <div class="form-group col-md" id="section_teacher_grade_ga">
                 <label for="user_teacher_grade_ga" data-i18n="[html]manager.profil.grade">Grade <span class="c-text-red">*</span></label>
                 <select class="form-control" id="user_teacher_grade_ga">
@@ -702,7 +702,7 @@ const classroomModals = {
         },
         content: `<div class="container-fluid">
         <input type="hidden" class="form-control" id="update_u_id_ga">
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-group col-md">
                 <label for="update_u_firstname_ga" data-i18n="[html]manager.profil.firstname">Prénom <span class="c-text-red">*</span></label>
                 <input type="text" class="form-control" id="update_u_firstname_ga">
@@ -717,7 +717,7 @@ const classroomModals = {
             </div>
         </div>
     
-        <div class="form-row c-secondary-form">
+        <div class="row c-secondary-form">
             <div class="form-group col-md">
                 <label for="update_u_mail_ga" data-i18n="[html]manager.profil.email">Adresse E-mail <span class="c-text-red">*</span></label>
                 <input type="email" class="form-control" id="update_u_mail_ga">
@@ -733,7 +733,7 @@ const classroomModals = {
             <textarea class="form-control" id="update_u_bio_ga" rows="3"></textarea>
         </div>
     
-        <div class="form-row c-secondary-form" id="update_user_teacher_infos_ga">
+        <div class="row c-secondary-form" id="update_user_teacher_infos_ga">
             <div class="form-group col-md" id="section_teacher_grade_update_ga">
                 <select class="form-control" id="update_user_teacher_grade_ga">
                     <option selected value="0" data-i18n="manager.users.teacherGrades.0">Primaire</option>
@@ -779,7 +779,7 @@ const classroomModals = {
                             <h3 class="font-weight-bold c-text-red m-auto text-center" data-i18n="manager.users.disableConfirmationTitle">Confirmer la désactivation</h3>
                             <p class="text-center" data-i18n="[html]manager.users.disableIntention">Vous vous apprêtez à désactiver l'utilisateur : <span id="mde_firstnameSA"></span></p>
                             <div class="text-center c-secondary-form">
-                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ si dessous pour valider l'action.</p>
+                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ ci dessous pour valider l'action.</p>
                                 <input type="text" name="validation_disableGroupAdmin" id="validation_disableGroupAdmin" data-i18n="[placeholder]manager.input.placeholder.delete" placeholder="supprimer">
                             </div>
                             <div class="text-center">
@@ -826,7 +826,7 @@ const classroomModals = {
                             <h3 class="font-weight-bold c-text-red m-auto text-center" data-i18n="manager.users.deleteConfirmationTitle">Confirmer la suppression</h3>
                             <p class="text-center" data-i18n="[html]manager.users.deleteIntentionSA">Vous vous apprêtez à supprimer l'utilisateur : <span id="mdi_firstnameSA"></span></p>
                             <div class="text-center c-secondary-form">
-                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ si dessous pour valider l'action.</p>
+                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ ci-dessous pour valider l'action.</p>
                                 <input type="text" name="validation_delete" id="validation_delete" data-i18n="[placeholder]manager.input.placeholder.delete" placeholder="supprimer">
                             </div>
                             <div class="text-center">
@@ -849,7 +849,7 @@ const classroomModals = {
                             <h3 class="font-weight-bold c-text-red m-auto text-center" data-i18n="manager.users.disableConfirmationTitle">Confirmer la désactivation</h3>
                             <p class="text-center" data-i18n="[html]manager.users.disableIntention">Vous vous apprêtez à désactiver l'utilisateur : <span id="mde_firstnameSA"></span></p>
                             <div class="text-center c-secondary-form">
-                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ si dessous pour valider l'action.</p>
+                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ ci-dessous pour valider l'action.</p>
                                 <input type="text" name="validation_disable" id="validation_disable" data-i18n="[placeholder]manager.input.placeholder.delete" placeholder="supprimer">
                             </div>
                             <div class="text-center">
@@ -872,7 +872,7 @@ const classroomModals = {
                             <h3 class="font-weight-bold c-text-red m-auto text-center" data-i18n="manager.users.deleteConfirmationTitle">Confirmer la suppression</h3>
                             <p class="text-center" data-i18n="[html]manager.group.deleteIntention">Vous vous apprêtez à suppression le groupe : <span id="md_group"></span></p>
                             <div class="text-center c-secondary-form">
-                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ si dessous pour valider l'action.</p>
+                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ ci-dessous pour valider l'action.</p>
                                 <input type="text" name="validation_delete_group" id="validation_delete_group" data-i18n="[placeholder]manager.input.placeholder.delete" placeholder="supprimer">
                             </div>
                             <div class="text-center">
@@ -889,18 +889,22 @@ const classroomModals = {
             icon: '',
             title: 'manager.users.showResetLinkTitle'
         },
-        content: `  <div id="manager-show-resetlink-modal">
-                        <div class="col-12">
-                            <h3 class="font-weight-bold text-info m-auto text-center my-3" data-i18n="manager.users.showResetLink">Lien de réinitialisation de mot de passe</h3>
-                            <div class="row">
-                                    <input type="text" class="form-control col-10" id="passwordLink">
-                                    <button class="btn btn-primary mx-1 btn-lg col" onclick="copyLink('#passwordLink')" data-i18n="manager.buttons.copyLink">Copy the link</button>
-                            </div>
-                            <div class="row">
-                                <button class="btn btn-info mx-auto mt-3 btn" onclick="dismissModal()" data-i18n="manager.buttons.close">Fermer</button>
-                            </div>
-                        </div>
-                    </div>`,
+        content: `<div id="manager-show-resetlink-modal">
+        <div class="col-12">
+            <h3 class="font-weight-bold text-info mx-auto text-center my-2" data-i18n="manager.users.showResetLink">Lien de réinitialisation de mot de passe</h3>
+            <div class="row">
+              <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="passwordLink">
+                    <div class="input-group-append">
+                      <button class="btn c-btn-primary" onclick="copyLink('#passwordLink')" data-i18n="manager.buttons.copyLink">Copy the link</button>
+                    </div>
+              </div>
+            </div>
+            <div class="row">
+                <button class="btn btn-info mx-auto mt-3 btn" onclick="dismissModal()" data-i18n="manager.buttons.close">Fermer</button>
+            </div>
+        </div>
+      </div>`,
         footer: ``
     },
     'groupadmin-show-grouplink': {
@@ -935,7 +939,7 @@ const classroomModals = {
         content: `  <div id="update-applications-modal">
                         <div class="container-fluid" id="update-app-manager" style="display:none;">
                             <p class="mt-4 mb-1 vitta-modal-title" data-i18n="manager.group.generalInfo">Restriction d'activité</p>
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
                                 <div class="col-md">
                                     <label for="app_update_name" data-i18n="[html]manager.table.nameMandatory">Name</label>
                                     <input type="text" class="form-control" id="app_update_name">
@@ -945,7 +949,7 @@ const classroomModals = {
                                     <input type="text" class="form-control" id="app_update_description">
                                 </div>
                             </div>
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
                                 <div class="col-md">
                                     <label for="app_update_image" data-i18n="manager.table.image">Image</label>
                                     <input type="text" class="form-control" id="app_update_image">
@@ -956,7 +960,7 @@ const classroomModals = {
                                     <input type="color" class="form-control" id="app_update_color">
                                 </div>
                             </div>
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
 
                                 <div class="col-md">
                                     <label for="app_update_sort_index" data-i18n="manager.activitiesRestrictions.indexPos">Nombre</label>
@@ -966,7 +970,7 @@ const classroomModals = {
                                 <input type="hidden" class="form-control" id="app_update_id">
                             </div>
                             <p class="mt-4 mb-1 vitta-modal-title" data-i18n="manager.activitiesRestrictions.restrictions"> Restriction d'activité </p>
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
                                 <div class="col-md">
                                     <label for="app_update_activity_restriction_value" data-i18n="manager.activitiesRestrictions.appQuantity">Nombre</label>
                                     <input type="number" class="form-control" id="app_update_activity_restriction_value">
@@ -977,7 +981,7 @@ const classroomModals = {
                                 <input type="checkbox" class="form-check-input" id="update_isLti">
                                 <label for="update_isLti" class="mt-4 mb-1 vitta-modal-title" data-i18n="manager.apps.ltiApps">Lti apps ?</label>
                             </div>
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
                                 <div class="col-md">
                                     <div id="update_inputs-lti" style="display:none;">
                                         <label for="update_clientId" data-i18n="[html]manager.apps.clientId">Client Id</label>
@@ -1007,7 +1011,7 @@ const classroomModals = {
                         <div class="col-12" id="delete-app-manager" style="display:none;">
                             <h3 class="font-weight-bold text-danger m-auto text-center" data-i18n="manager.users.deleteConfirmationTitle">Confirmer la suppression</h3>
                             <p class="text-center" data-i18n="[html]manager.apps.deleteIntention"></p>
-                            <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ si dessous pour valider l'action.</p>
+                            <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ ci-dessous pour valider l'action.</p>
                             <div class="text-center c-secondary-form">
                                 <input type="hidden" name="validation_delete_application_id" id="validation_delete_application_id">
                                 <input type="text" name="validation_delete_application" id="validation_delete_application" data-i18n="[placeholder]manager.input.placeholder.delete" placeholder="supprimer">
@@ -1018,7 +1022,7 @@ const classroomModals = {
                             </div>
                         </div>
                         <div class="container-fluid" id="create-app-manager" style="display:none;">
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
                                 <div class="col-md">
                                     <label for="app_create_name" data-i18n="[html]manager.table.nameMandatory">Name</label>
                                     <input type="text" class="form-control" id="app_create_name">
@@ -1028,7 +1032,7 @@ const classroomModals = {
                                     <input type="text" class="form-control" id="app_create_description">
                                 </div>
                             </div>
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
                                 <div class="col-md">
                                     <label for="app_create_image" data-i18n="manager.table.image">Image</label>
                                     <input type="text" class="form-control" id="app_create_image">
@@ -1039,7 +1043,7 @@ const classroomModals = {
                                     <input type="color" class="form-control" id="app_create_color">
                                 </div>
                             </div>
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
 
                                 <div class="col-md">
                                     <label for="app_create_sort_index" data-i18n="manager.activitiesRestrictions.indexPos">Nombre</label>
@@ -1050,7 +1054,7 @@ const classroomModals = {
                             </div>
 
                             <p class="mt-4 mb-1 vitta-modal-title" data-i18n="manager.activitiesRestrictions.restrictions"> Restriction d'activité </p>
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
                                 <div class="col-md">
                                     <label for="app_create_activity_restriction_value" data-i18n="manager.activitiesRestrictions.max">Nombre</label>
                                     <input type="number" class="form-control" id="app_create_activity_restriction_value">
@@ -1061,7 +1065,7 @@ const classroomModals = {
                                 <input type="checkbox" class="form-check-input" id="isLti">
                                 <label for="isLti" class="mt-4 mb-1 vitta-modal-title" data-i18n="manager.apps.ltiApps">Lti apps ?</label>
                             </div>
-                            <div class="form-row mt-1 c-secondary-form">
+                            <div class="row mt-1 c-secondary-form">
                                 <div class="col-md">
                                     <div id="inputs-lti" style="display:none;">
                                         <label for="clientId" data-i18n="[html]manager.apps.clientId">Client Id</label>
@@ -1191,7 +1195,7 @@ const classroomModals = {
                             <p id="activity-linked-to-course-message" class="text-center mt-2"> Cette activité est liée à un ou plusieurs parcours.  </p>
                             <p class="text-center" data-i18n="classroom.activities.deleteActivityDisclaimer"></p>
                             <div class="text-center c-secondary-form">
-                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ si dessous pour valider l'action.</p>
+                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ ci-dessous pour valider l'action.</p>
                                 <input type="text" name="validation-delete-activity" id="validation-delete-activity" data-i18n="[placeholder]manager.input.placeholder.delete" placeholder="supprimer">
                             </div>
                             <div class="text-center">
@@ -1215,7 +1219,7 @@ const classroomModals = {
     
             <p class="mt-4 mb-1 vitta-modal-title" data-i18n="classroom.activities.foldersMessages.updateFolder">Modification de dossier</p>
     
-            <div class="form-row mt-1 c-secondary-form">
+            <div class="row mt-1 c-secondary-form">
                 <div class="col-md">
                     <label for="folder_update_name" data-i18n="[html]classroom.activities.foldersMessages.nameMandatory">Name</label>
                     <input type="text" class="form-control" id="folder_update_name">
@@ -1232,7 +1236,7 @@ const classroomModals = {
     
             <h3 class="font-weight-bold text-danger m-auto text-center" data-i18n="classroom.activities.foldersMessages.deleteFolder">Confirmer la suppression</h3>
             <p class="text-center" data-i18n="classroom.activities.foldersMessages.deleteDisclaimer">Attention, le dossier et l'ensemble de son contenu (activités et sous-dossiers) seront supprimés.</p>
-            <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ si dessous pour valider l'action.</p>
+            <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ ci-dessous pour valider l'action.</p>
     
             <div class="text-center c-secondary-form">
                 <input type="hidden" name="validation-delete-folder_id" id="validation-delete-folder_id">
@@ -1251,7 +1255,7 @@ const classroomModals = {
     
             <p class="mt-4 mb-1 vitta-modal-title" data-i18n="classroom.activities.foldersMessages.createFolder">Création de dossier</p>
     
-            <div class="form-row mt-1 c-secondary-form">
+            <div class="row mt-1 c-secondary-form">
                 <div class="col-md">
                     <label for="folder_create_name" data-i18n="[html]classroom.activities.foldersMessages.nameMandatory">Name</label>
                     <input type="text" class="form-control" id="folder_create_name">
@@ -1303,7 +1307,7 @@ const classroomModals = {
                             <input type="hidden" id="student-to-delete-id">
                             <h3 class="font-weight-bold c-text-red m-auto text-center" data-i18n="classroom.classes.deleteStudentConfirm"></h3>
                             <div class="text-center c-secondary-form">
-                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ si dessous pour valider l'action.</p>
+                                <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ ci-dessous pour valider l'action.</p>
                                 <input type="text" name="validation-delete-student" id="validation-delete-student" data-i18n="[placeholder]manager.input.placeholder.delete" placeholder="supprimer">
                             </div>
                             <div class="text-center">
@@ -1352,7 +1356,7 @@ const classroomModals = {
                         <div class="col-12" id="delete-course-manager">
                     
                             <h3 class="font-weight-bold text-danger m-auto text-center" data-i18n="classroom.activities.coursesMessages.deleteFolder">Confirmer la suppression</h3>
-                            <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ si dessous pour valider l'action.</p>
+                            <p class="text-center" data-i18n="manager.users.deleteConfirmation">Veuillez écrire "supprimer" dans le champ ci-dessous pour valider l'action.</p>
                     
                             <div class="text-center c-secondary-form">
                                 <input type="hidden" name="validation-delete-course-id" id="validation-delete-course-id">
@@ -1399,6 +1403,52 @@ const classroomModals = {
             title: 'classroom.modals.assets'
         },
         content: `  <div id="customizable-modal-content" class="container-fluid d-flex flex-wrap">
+                    </div>`,
+        footer: ``
+    },
+    'import-activity-modal': {
+        selector: '',
+        header: {
+            icon: '',
+            title: 'newActivities.modals.importActivity'
+        },
+        content: `  <div id="import-activity-main-content" class="container-fluid d-flex flex-wrap">
+                        <div class="col-12">
+
+                            <h3 class="font-weight-bold c-text-red m-auto text-center" data-i18n="newActivities.modals.importTitle"></h3>
+
+                            <div class="text-center c-secondary-form">
+                                <p data-i18n="[html]newActivities.modals.validateMessage" class="text-center">Voulez-vous importer cette activité ?</p>
+                            </div>
+
+                            <div class="text-center">
+                                <button class="btn c-btn-light mx-auto mt-3 btn-lg" onclick="cancelImport()" data-i18n="manager.buttons.cancel">Annuler</button>
+                                <button class="btn c-btn-secondary mx-auto mt-3 btn-lg" onclick="persistImport()" data-i18n="manager.buttons.validate">Valider</button>
+                            </div>
+
+                        </div>
+                    </div>`,
+        footer: ``
+    },
+    'quit-lti-activity-modal': {
+        selector: '',
+        header: {
+            icon: '',
+            title: 'classroom.modals.quitLtiActivity.title'
+        },
+        content: `  <div class="container-fluid d-flex flex-wrap">
+                        <div class="col-12">
+
+                            <div class="text-center c-secondary-form">
+                                <p data-i18n="[html]classroom.modals.quitLtiActivity.description" class="text-center"></p>
+                            </div>
+
+                            <div class="text-center">
+                                <button id="quit-lti-yes-button" class="btn c-btn-red mx-auto mt-3 btn-lg" data-i18n="classroom.modals.quitLtiActivity.yesButton"></button>
+                                <button id="quit-lti-no-button" class="btn c-btn-primary mx-auto mt-3 btn-lg" data-i18n="classroom.modals.quitLtiActivity.noButton"></button>
+                            </div>
+
+                        </div>
                     </div>`,
         footer: ``
     }

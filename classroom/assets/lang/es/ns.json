@@ -601,7 +601,8 @@
       "userNotFound": "No se ha encontrado ningún usuario vinculado con este correo.",
       "inactiveAccount": "Su cuenta no está activa, haga clic en el botón de abajo para enviar un nuevo correo de validación.",
       "accountDeactivated": "Su cuenta ha sido desactivada, contacte con un administrador si el problema persiste.",
-      "errorBeta": "Para acceder a esta funcionalidad debe ser un beta tester.<a href='https://fr.vittascience.com/about#contact'>Contacte con el equipo de Vittascience</a> para saber más."
+      "errorBeta": "Para acceder a esta funcionalidad debe ser un beta tester.<a href='https://fr.vittascience.com/about#contact'>Contacte con el equipo de Vittascience</a> para saber más.",
+      "badInput": "Correo electrónico y contraseña obligatorios"
     },
     "signup-popup": {
       "title": "Registro",
@@ -671,6 +672,9 @@
       "theme": "Tema",
       "light_theme": "Tema de la luz",
       "dark_theme": "Tema oscuro",
+      "contrast": "Contraste",
+      "normal_contrast": "Contraste normal",
+      "high_contrast": "Alto contraste",
       "font": "Fuentes",
       "basic_font": "Básico",
       "know_more": "Saber más"
@@ -1192,7 +1196,7 @@
       "contentTitle": "Contenido de la actividad",
       "tolerance1": "Añadir una tolerancia de error de",
       "tolerance2": "carácter(es) en la respuesta completa del estudiante.",
-      "hint": "Pista <i>* mostrada si la respuesta es incorrecta</i>",
+      "hint": "Pista",
       "title": "Título de la actividad <span class=\"c-text-red\">*</span>",
       "description": "Descripción de la actividad <span class=\"c-text-red\">*</span>",
       "content": "Contenido de la actividad <span class=\"c-text-red\">*</span>",

@@ -1,4 +1,4 @@
-function DisplayPanel() {}
+function DisplayPanel() { }
 
 DisplayPanel.prototype.classroom_dashboard_classes_panel_teacher = function () {
     classroomsDisplay();
@@ -35,7 +35,7 @@ DisplayPanel.prototype.classroom_dashboard_profil_panel = function () {
     })
 }
 DisplayPanel.prototype.classroom_dashboard_ide_panel = function (option) {
-    if (option == "python" || option == "microbit" || option == "arduino" || option == "esp32" || option == "quickpi" || option == "adacraft" || option == "stm32" || option == "TI-83"){
+    if (option == "python" || option == "microbit" || option == "arduino" || option == "esp32" || option == "quickpi" || option == "adacraft" || option == "wb55" || option == "TI-83") {
         $('#classroom-dashboard-ide-panel').html('<iframe width="100%" style="height:85vh;" frameborder="0" allowfullscreen="" style="border:1px #d6d6d6 solid;" src="' + URLServer + '/' + option + '/?console=bottom&use=classroom&embed=1&action=new"></iframe>')
     } else if (option == "texas-instruments") {
         $('#classroom-dashboard-ide-panel').html('<iframe width="100%" style="height:85vh;" frameborder="0" allowfullscreen="" style="border:1px #d6d6d6 solid;" src="' + URLServer + '/microbit/?toolbox=texas-instruments&console=bottom&use=classroom&embed=1&action=new"></iframe>');
@@ -48,7 +48,7 @@ DisplayPanel.prototype.classroom_dashboard_ide_panel = function (option) {
     function hideShareOptionArea(iframe) {
         let shareOptAreaElt = iframe.contentWindow.document.getElementById('check_box_div');
         let shareOptDescElt = iframe.contentWindow.document.getElementById('check_box_hint');
-        if (shareOptAreaElt){
+        if (shareOptAreaElt) {
             shareOptAreaElt.style.position = 'absolute';
             shareOptAreaElt.style.top = '-9999px';
             shareOptAreaElt.style.left = '-9999px';
@@ -56,7 +56,7 @@ DisplayPanel.prototype.classroom_dashboard_ide_panel = function (option) {
             shareOptDescElt.style.top = '-9999px';
             shareOptDescElt.style.left = '-9999px';
         } else {
-            setTimeout(() => {hideShareOptionArea(iframe)}, 400);
+            setTimeout(() => { hideShareOptionArea(iframe) }, 400);
         }
     }
 
@@ -147,10 +147,9 @@ DisplayPanel.prototype.classroom_dashboard_help_panel = function () {
 DisplayPanel.prototype.classroom_dashboard_help_panel_teacher = function () {
     let html = '';
     let index = [7, 12, 5, 3, 3, 3]; // number of questions+1 per category in faq
-    
+
     // capitalize demoStudent name
     let capitalizedDemoStudentName = `${demoStudentName.charAt(0).toUpperCase()}${demoStudentName.slice(1)}`;
-    
     for (let i = 1; i <= index.length; i++) {
         html += "<h4 data-i18n='[html]faqTeacherNeutral." + i + ".section_title'></h4>";
         for (let j = 1; j < index[i - 1]; j++) {
@@ -231,15 +230,107 @@ DisplayPanel.prototype.classroom_dashboard_form_classe_panel_update = function (
     $('#table-students-update ul').html("");
     classroom.students.forEach(function (student) {
         $('#table-students-update ul').append(addStudentRow(student.user.pseudo, student.user.id, true));
-    }) 
+    })
 }
 
 DisplayPanel.prototype.classroom_dashboard_activities_panel_teacher = function () {
+    tagManagement();
     ClassroomSettings.activity = false;
     if (foldersManager) {
         if (foldersManager.actualFolder != null) {
             foldersManager.goToFolder(null)
         }
+    }
+}
+
+async function tagManagement() {
+
+    const tags = await Main.getClassroomManager().getAllTags();
+    if (!tags) {
+        return;
+    }
+
+    if (tags.tags.length > 0) {
+        const tagsForActivities = document.getElementById("tags-activities");
+        const tagsForPanel = document.getElementById("tags-panel");
+        tagsForActivities.classList.remove("d-none");
+        tagsForActivities.classList.add("d-flex");
+        tagsForPanel.classList.remove("d-none");
+    }
+
+    if (Main.getClassroomManager().tagList == tags.tags) {
+        return;
+    }
+
+
+    Main.getClassroomManager().tagList = tags.tags;
+
+    let tagDropdown = document.getElementById("dropdown-tags-filter");
+    let tagListSelect = document.getElementById("taglist-select");
+
+    if (tagDropdown) {
+        tagDropdown.innerHTML = "";
+    }
+
+    if (tagListSelect) {
+        tagListSelect.innerHTML = "";
+    }
+
+    // order by parent tag
+    tags.tags.sort((a, b) => {
+        if (a.parentTag == null && b.parentTag != null) {
+            return -1;
+        } else if (a.parentTag != null && b.parentTag == null) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+
+
+    tags.tags.forEach((tag) => {
+
+        if (tagListSelect) {
+            if (tag.parentTag != null) {
+                let parentTag = tag.parentTag;
+                let parentTagId = parentTag.id;
+                let parentTagName = parentTag.name;
+
+                let parentTagElement = document.getElementById(`parent-tag-${parentTagId}`);
+                if (parentTagElement) {
+                    parentTagElement.innerHTML += `<option value="${tag.id}">${tag.name}</option>`;
+                } else {
+                    tagListSelect.innerHTML += `<optgroup label="${parentTagName}" id="parent-tag-${parentTagId}">
+                            <option value="${tag.id}">${tag.name}</option>
+                        </optgroup>`;
+                }
+
+            }
+        }
+
+        if (tagDropdown) {
+            if (tag.parentTag == null) {
+                tagDropdown.innerHTML += `<fieldset id="field-${tag.id}" class="my-2">
+                    <legend class="mx-2 vitta-modal-title">${tag.name}</legend>
+                    </fieldset>`;
+            } else {
+                let parentDiv = document.getElementById(`field-${tag.parentTag.id}`);
+                parentDiv.innerHTML += `<div class="dropdown-item c-checkbox">
+                    <input class="form-check-input" data-id="${tag.id}" data-name="${tag.name}" type="checkbox" id="filter-activity-type-${tag.name}">
+                    <label class="form-check-label" for="filter-activity-type-${tag.name}" id="filter-${tag.name}">${tag.name}</label>
+                    </div>`
+            }
+        }
+
+    });
+
+    if (tagDropdown) {
+        document.querySelectorAll('[id^="filter-activity-type-"]').forEach((checkbox) => {
+            // add event listener to each checkbox
+            checkbox.addEventListener("change", (event) => {
+                processDisplay();
+            });
+        });
     }
 }
 
@@ -251,6 +342,8 @@ DisplayPanel.prototype.classroom_table_panel_teacher = function (link) {
             document.getElementById('classroom-info').style.display = 'none';
         }
 
+        resetDisplayClassroom();
+        breadcrumbManager.setSpecificClass(getClassroomInListByLink(ClassroomSettings.classroom)[0].classroom.name, link);
         // restore the add student div to its default content to remove potential changes from the update classroom modal
         $('#classroom-form-name').val(''),
             $('#classroom-form-school').val('')
@@ -261,7 +354,6 @@ DisplayPanel.prototype.classroom_table_panel_teacher = function (link) {
                 displayStudentsInClassroom(students, link)
                 $('.classroom-link').html(ClassroomSettings.classroom)
             })
-
         } else {
             if (link == null || link == '') {
                 if (ClassroomSettings.classroom != null) {
@@ -271,11 +363,6 @@ DisplayPanel.prototype.classroom_table_panel_teacher = function (link) {
                     return;
                 }
             }
-            // Load the classroom with the current cache data
-            // seems to be duplicate call for displayStudentsInClassroom with the code below -> 309 - 310 updated by @Rémi C. October 2022
-            /* let students = getClassroomInListByLink(link)[0].students
-            displayStudentsInClassroom(students, link) */
-
 
             $('.classroom-link').html(ClassroomSettings.classroom)
             $('#classroom-code-share-qr-code').html('');
@@ -283,12 +370,12 @@ DisplayPanel.prototype.classroom_table_panel_teacher = function (link) {
             fullPath = currentOriginUrl + '/classroom/login.php?link=' + ClassroomSettings.classroom;
             QrCreator.render({
                 text: fullPath,
-                radius: 0.5, 
+                radius: 0.5,
                 ecLevel: 'H',
                 fill: getComputedStyle(document.documentElement).getPropertyValue('--classroom-primary'),
-                background: "white", 
+                background: "white",
                 size: 300
-              }, document.querySelector('#classroom-code-share-qr-code'));
+            }, document.querySelector('#classroom-code-share-qr-code'));
 
             // Block classroom feature
             if (getClassroomInListByLink(link)[0].classroom.isBlocked == false) {
@@ -314,7 +401,7 @@ DisplayPanel.prototype.classroom_table_panel_teacher = function (link) {
         dashboardAutoRefresh.refreshLater();
     } else {
         navigatePanel('classroom-dashboard-classes-panel-teacher', 'dashboard-classes-teacher', 'WK' + id, '')
-        displayNotification('#notif-div', "classroom.login.noClass", "warning")
+        displayNotification('#notif-div', "classroom.login.noClass", "error")
     }
 }
 DisplayPanel.prototype.classroom_dashboard_new_activity_panel3 = function (ref) {
@@ -327,7 +414,7 @@ DisplayPanel.prototype.classroom_dashboard_new_activity_panel3 = function (ref) 
         }
         let attribution = getAttributionByRef(ref);
         let retroAttributionIsActive = ClassroomSettings.isRetroAttributed === true ? true : false;
-        $('#retro-attribution-activity-form').prop('checked',retroAttributionIsActive)
+        $('#retro-attribution-activity-form').prop('checked', retroAttributionIsActive)
         $('#introduction-activity-form').val(attribution.introduction)
         $('#date-begin-activity-form').val(formatDateInput(new Date(attribution.dateBegin.date)))
         $('#date-end-activity-form').val(formatDateInput(new Date(attribution.dateEnd.date)))
@@ -346,7 +433,7 @@ DisplayPanel.prototype.classroom_dashboard_new_activity_panel3 = function (ref) 
         $('#date-begin-activity-form').val(formatDateInput(now))
         $('#date-end-activity-form').val(formatDateInput(future))
         $('#introduction-activity-form').val('')
-        $('#retro-attribution-activity-form').prop('checked',true)
+        $('#retro-attribution-activity-form').prop('checked', true)
     }
 }
 
@@ -384,7 +471,6 @@ DisplayPanel.prototype.classroom_dashboard_activity_panel = function (id) {
                     Main.activityTracker = new ActivityTracker();
                     Main.activityTracker.startActivityTracker();
                 }
-                //loadActivityForStudents(isDoable)
                 loadCourseAndActivityForStudents(isDoable);
             }
         }
@@ -404,17 +490,81 @@ function formatDateInput(date) {
     return date.getFullYear() + "-" + addZero((Number(date.getMonth()) + 1), 2) + "-" + addZero(date.getDate(), 2)
 }
 
+function createSwitchViewForTeacherActivity() {
+
+    let titleDiv = document.getElementById('activity-views-switcher');
+    titleDiv.innerHTML = '';
+
+    let switcherDiv = createHtmlElement('div', {
+        'class': 'd-flex'
+    });
+
+    let switcher = createHtmlElement('div', {
+        'class': 'switcher'
+    });
+
+    let attributesForDoable = {
+        'type': 'radio',
+        'class': 'switcher__input switcher__input--left',
+        'name': 'option-doable',
+        'id': 'option-doable-true',
+        'autocomplete': 'off',
+        'value': 'right',
+        'checked': 'checked'
+    }
+
+    let attributesForDoableLabel = {
+        'class': 'switcher__label',
+        'for': 'option-doable-true'
+    }
+
+    let doableTrue = createHtmlElement('input', attributesForDoable);
+    let doableTrueLabel = createHtmlElement('label', attributesForDoableLabel, i18next.t("classroom.activities.toComplete"));
+
+    let attributesForDoableFalse = {
+        'type': 'radio',
+        'class': 'switcher__input switcher__input--right',
+        'name': 'option-doable',
+        'id': 'option-doable-false',
+        'autocomplete': 'off',
+    }
+
+    let attributesForDoableFalseLabel = {
+        'class': 'switcher__label',
+        'for': 'option-doable-false'
+    }
+
+    let doableFalse = createHtmlElement('input', attributesForDoableFalse);
+    let doableFalseLabel = createHtmlElement('label', attributesForDoableFalseLabel, i18next.t("classroom.activities.corrected"));
+
+    let span = createHtmlElement('span', {
+        'class': 'switcher__toggle'
+    });
+
+
+    switcher.appendChild(doableTrue);
+    switcher.appendChild(doableTrueLabel);
+    switcher.appendChild(doableFalse);
+    switcher.appendChild(doableFalseLabel);
+    switcher.appendChild(span);
+
+
+    switcherDiv.appendChild(switcher);
+    titleDiv.appendChild(switcherDiv);
+}
+
 function getTeacherActivity() {
     resetInputsForActivity();
-    
+
     $('#activity-title').html(Activity.title);
-    
-    let autoCorrectionDisclaimerElt = `<img id="activity-auto-disclaimer" data-toggle="tooltip" src="${_PATH}assets/media/auto-icon.svg" title="${i18next.t("classroom.activities.isAutocorrect")}">`
+
+    let autoCorrectionDisclaimerElt = `<img id="activity-auto-disclaimer" data-bs-toggle="tooltip" src="${_PATH}assets/media/auto-icon.svg" title="${i18next.t("classroom.activities.isAutocorrect")}">`
     Activity.isAutocorrect ? $('#activity-title').append(autoCorrectionDisclaimerElt).tooltip() : null;
+
 
     let activityDropdownElt = `
     <div class="dropdown mx-2">
-        <button class="btn c-btn-outline-grey" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn c-btn-outline-grey" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             ${capitalizeFirstLetter(i18next.t('words.options'))}
             <i class="fas fa-cog"></i>
         </button>
@@ -443,36 +593,27 @@ function getTeacherActivity() {
     </div>`
     $('#activity-title').append(activityDropdownElt);
 
-
-    if (IsJsonString(Activity.content)) {
-       
-        const contentParsed = JSON.parse(Activity.content);
-        const funct = customActivity.getTeacherActivityCustom.filter(activityValidate => activityValidate[0] == Activity.type)[0];
-        if (funct) { 
-            funct[1](contentParsed, Activity);
-        } else {
-            // LTI Activity
-            if (Activity.isLti) {
-                launchLtiResource(Activity.id, Activity.type, JSON.parse(Activity.content).description);
-            } else {
-                // Non core and non LTI Activity fallback
-                $("#activity-content").html(bbcodeToHtml(contentParsed));
-                $("#activity-content-container").show();
-            }
-        }      
+    const doableActivities = ['fillIn', 'dragAndDrop', 'free', 'quiz'];
+    // Create the switch view for the teacher (doable or correction) if the activity is not a reading and not an LTI
+    if (doableActivities.includes(Activity.type) && Activity.type != 'lti') {
+        createSwitchViewForTeacherActivity();
+        loadActivityContent(true);
     } else {
-       
-        $('#activity-content').html(bbcodeToHtml(Activity.content))
-        $("#activity-content-container").show();
+        $('#activity-views-switcher').html('');
+        loadActivityContent(false);
     }
 
-    $('#activity-introduction').hide()
-    $('#activity-validate').hide()
+    const switchPreview = document.getElementsByName('option-doable');
+    for (let i = 0; i < switchPreview.length; i++) {
+        switchPreview[i].addEventListener('click', () => {
+            if (switchPreview[i].id == 'option-doable-true') {
+                loadActivityContent(true);
+            } else {
+                loadActivityContent(false);
+            }
+        });
+    }
 }
-
-
-
-
 
 function getIntelFromClasses() {
     $('#list-classes').html('')

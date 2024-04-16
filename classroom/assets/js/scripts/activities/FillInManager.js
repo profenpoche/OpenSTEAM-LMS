@@ -42,11 +42,9 @@ class FillInManager {
         }
     
         Main.getClassroomManager()._createActivity.content.fillInFields.contentForTeacher = $('#fill-in-content').bbcode();
-    
-        let response = $('#fill-in-content').bbcode().match(/\[answer\](.*?)\[\/answer\]/gi).map(match => match.replace(/\[answer\](.*?)\[\/answer\]/gi, "$1")),
-            contentForStudent = $('#fill-in-content').bbcode();
+        let response = $('#fill-in-content').bbcode().match(/\[answer\](.*?)\[\/answer\]/gi).map(match => match.replace(/\[answer\](.*?)\[\/answer\]/gi, "$1"));
+        
         response.forEach((e, i) => {
-            contentForStudent = contentForStudent.replace(`[answer]${e}[/answer]`, `﻿`);
             if (e.includes('&&')) {
                 response[i] = e.split('&&').map(e => e.trim()).join(',');
             }
@@ -64,11 +62,9 @@ class FillInManager {
     
         Main.getClassroomManager()._createActivity.tolerance = $('#fill-in-tolerance').val();
         Main.getClassroomManager()._createActivity.autocorrect = $('#fill-in-autocorrect').is(":checked");
-        Main.getClassroomManager()._createActivity.content.hint = $('#fill-in-hint').val();
-    
-    
+        Main.getClassroomManager()._createActivity.content.hint = $('#fill-in-hint').bbcode();
+
         Main.getClassroomManager()._createActivity.solution = response;
-        Main.getClassroomManager()._createActivity.content.fillInFields.contentForStudent = contentForStudent;
     
         if (Main.getClassroomManager()._createActivity.content.fillInFields.contentForTeacher == "") {
             return false
@@ -98,19 +94,45 @@ class FillInManager {
     manageUpdateForFillIn(activity) {
         $('#activity-fill-in').show();
         let content = JSON.parse(activity.content);
-        $("#fill-in-states").htmlcode(bbcodeToHtml(content.states));
-        $("#fill-in-hint").val(content.hint);
+        $("#fill-in-states").forceInsertBbcode(content.states);
+        $("#fill-in-hint").forceInsertBbcode(content.hint);
         $("#fill-in-tolerance").val(activity.tolerance);
-        $("#fill-in-content").htmlcode(bbcodeToHtml(content.fillInFields.contentForTeacher));
+        $("#fill-in-content").forceInsertBbcode(content.fillInFields.contentForTeacher);
         activity.isAutocorrect ? $("#fill-in-autocorrect").prop("checked", true) : $("#fill-in-autocorrect").prop("checked", false);
         navigatePanel('classroom-dashboard-classes-new-activity', 'dashboard-activities-teacher');
     }
 
     showTeacherFillInActivity(contentParsed, Activity) {
-        $("#activity-states").html(bbcodeToHtml(contentParsed.states));
         let contentForTeacher = contentParsed.fillInFields.contentForTeacher;
         contentForTeacher = parseContent(contentForTeacher, "lms-answer fill-in-answer-teacher", true);
-        $('#activity-content').html(bbcodeToHtml(contentForTeacher));
+        $('#activity-content').html(bbcodeContentIncludingMathLive(contentForTeacher));
+        fillInManager.showTeacherCommonCode(contentParsed);
+    }
+
+    showTeacherFillInActivityDoable(contentParsed, Activity) {
+
+        let contentDiv = document.getElementById('activity-content');
+        contentDiv.innerHTML = "";
+
+        let divActivityDoable = document.createElement('div');
+        divActivityDoable.id = "activity-doable" + Activity.id;
+        divActivityDoable.classList.add("activity-doable-fill-in-teacher");
+
+        let contentReplaced = contentParsed.fillInFields.contentForTeacher.replaceAll(/\[answer\](.*?)\[\/answer\]/g, "_TOBEREPLACED_");
+        let studentContent = bbcodeContentIncludingMathLive(contentReplaced);
+        let nbOccu = studentContent.match(/_TOBEREPLACED_/g).length;
+
+        for (let i = 1; i < nbOccu+1; i++) {
+            let toBeReplace = studentContent.match(/_TOBEREPLACED_/g)[0];
+            studentContent = studentContent.replace(toBeReplace, `<input type="text" id="student-fill-in-field-${i}-preview" class="answer-student">`);
+        }
+
+        contentDiv.innerHTML = studentContent;
+        fillInManager.showTeacherCommonCode(contentParsed);
+    }
+
+    showTeacherCommonCode(contentParsed) {
+        $("#activity-states").html(bbcodeContentIncludingMathLive(contentParsed.states));
         $("#activity-content-container").show();
         $("#activity-states-container").show();
     }
@@ -123,22 +145,26 @@ class FillInManager {
         if (UserManager.getUser().isRegular) {
             let contentForTeacher = content.fillInFields.contentForTeacher;
             contentForTeacher = parseContent(contentForTeacher, "lms-answer fill-in-answer-teacher", true);
-            $('#activity-content'+course).html(bbcodeToHtml(contentForTeacher));
+            $('#activity-content'+course).html(bbcodeContentIncludingMathLive(contentForTeacher));
             $('#activity-content-container'+course).show();
         }
     
-        $('#activity-states'+course).html(bbcodeToHtml(content.states));
+        $('#activity-states'+course).html(bbcodeContentIncludingMathLive(content.states));
         $('#activity-states-container'+course).show();
         
         if (correction <= 1 || correction == null) {
             if (!UserManager.getUser().isRegular) {
-                let studentContent = bbcodeToHtml(content.fillInFields.contentForStudent),
-                    nbOccu = studentContent.match(/﻿/g).length;
+                fillInManager.removeFillInFields();
+                let contentReplaced = content.fillInFields.contentForTeacher.replaceAll(/\[answer\](.*?)\[\/answer\]/g, "_TOBEREPLACED_");
+                let studentContent = bbcodeContentIncludingMathLive(contentReplaced);
+                let nbOccu = studentContent.match(/_TOBEREPLACED_/g).length;
     
                 for (let i = 1; i < nbOccu+1; i++) {
-                    studentContent = studentContent.replace(`﻿`, `<input type="text" id="student-fill-in-field-${i}" class="answer-student">`);
+                    let toBeReplace = studentContent.match(/_TOBEREPLACED_/g)[0];
+                    studentContent = studentContent.replace(toBeReplace, `<input type="text" id="student-fill-in-field-${i}" class="answer-student">`);
                 }
-                $('#activity-content'+course).html(studentContent);
+                
+                $('#activity-content'+course).html(bbcodeContentIncludingMathLive(studentContent));
     
                 // Place the student's response if there is one
                 if (Activity.response != null && Activity.response != "") {
@@ -159,8 +185,15 @@ class FillInManager {
         } 
     }
 
+    removeFillInFields() {
+        let fields = document.querySelectorAll(`input[id^="student-fill-in-field-"]`);
+        for(let field of fields) {
+            field.remove();
+        }
+    }
+
     displayFillInTeacherSide(correction_div, correction, content, isFromCourse) {
-        let studentContentString = content.fillInFields.contentForStudent,
+        let studentContentString = content.fillInFields.contentForTeacher,
             studentResponses = JSON.parse(Activity.response),
             course = isFromCourse ? "-course" : "";
     
@@ -168,7 +201,8 @@ class FillInManager {
     
             studentResponses.forEach((response, i) => {
                 let autoWidthStyle = 'style="width:' + (response.length + 2) + 'ch"';
-                studentContentString = studentContentString.replace('﻿', `<input type="text" id="correction-student-fill-in-field-${i}" ${autoWidthStyle} readonly class="fill-in-answer-teacher answer-student" value="${response}">`);
+                let answer = studentContentString.match(/\[answer\](.*?)\[\/answer\]/g)[0];
+                studentContentString = studentContentString.replace(answer, `<input type="text" id="correction-student-fill-in-field-${i}" ${autoWidthStyle} readonly class="fill-in-answer-teacher answer-student" value="${response}">`);
             });
     
     
@@ -182,7 +216,7 @@ class FillInManager {
                 }
             })
         
-            $('#activity-student-response-content'+course).html(bbcodeToHtml(studentContentString));
+            $('#activity-student-response-content'+course).html(bbcodeContentIncludingMathLive(studentContentString));
             $('#activity-student-response'+course).show();
         }
     
@@ -190,15 +224,136 @@ class FillInManager {
     }
 
     fillInPreview(activity) {
-        let studentContent = bbcodeToHtml(activity.content.fillInFields.contentForStudent)
-        let nbOccu = studentContent.match(/﻿/g).length;
+
+        let contentReplaced = activity.content.fillInFields.contentForTeacher.replaceAll(/\[answer\](.*?)\[\/answer\]/g, "_TOBEREPLACED_");
+        let studentContent = bbcodeContentIncludingMathLive(contentReplaced);
+        let nbOccu = studentContent.match(/_TOBEREPLACED_/g).length;
+
         for (let i = 1; i < nbOccu+1; i++) {
-            studentContent = studentContent.replace(`﻿`, `<input type="text" id="student-fill-in-field-${i}-preview" class="answer-student">`);
+            let toBeReplace = studentContent.match(/_TOBEREPLACED_/g)[0];
+            studentContent = studentContent.replace(toBeReplace, `<input type="text" id="student-fill-in-field-${i}-preview" class="answer-student">`);
         }
+
         $('#preview-activity-content').html(studentContent);
         $('#preview-states').show();
         $('#preview-content').show();
         $('#activity-preview-div').show();
+    }
+
+    renderFillInActivity(activityData, htmlContainer, idActivity, responses) {
+        coursesManager.manageStatesAndContentForOnePageCourse(idActivity, htmlContainer, activityData);
+        // place the previous student responses in the fields
+
+        if (activityData.doable) {
+            if (responses != null && responses != "") {
+                let response = JSON.parse(responses);
+                for (let i = 0; i < response.length; i++) {
+                    let input = document.getElementById(`student-fill-in-field-${idActivity}-${i+1}`);
+                    if (response[i] != "" && response[i] != null) {
+                        input.value = response[i];
+                    }
+                }
+            }
+        }
+
+        if (activityData.doable) {
+            coursesManager.manageValidateBtnForOnePageCourse(idActivity, htmlContainer, activityData);
+        }
+    }
+
+    getManageDisplayFillIn(content, activity, correction_div) {
+        const activityData = {
+            states: null,
+            content: null,
+            correction: null,
+            doable: false,
+            studentAnswer: null,
+            type: "fillIn",
+            link: activity.id,
+            id: activity.activity.id,
+        }
+
+
+        activityData.doable = activity.correction <= 1 || activity.correction == null;
+        activityData.states = bbcodeContentIncludingMathLive(content.states);
+
+        if (activity.correction <= 1 || activity.correction == null) {
+            if (!UserManager.getUser().isRegular) {
+
+                let contentReplaced = content.fillInFields.contentForTeacher.replaceAll(/\[answer\](.*?)\[\/answer\]/g, "_TOBEREPLACED_");
+                let studentContent = bbcodeContentIncludingMathLive(contentReplaced);
+                let nbOccu = studentContent.match(/_TOBEREPLACED_/g).length;
+    
+                for (let i = 1; i < nbOccu+1; i++) {
+                    let toBeReplace = studentContent.match(/_TOBEREPLACED_/g)[0];
+                    studentContent = studentContent.replace(toBeReplace, `<input type="text" id="student-fill-in-field-${activity.activity.id}-${i}" class="answer-student">`);
+                }
+                
+                activityData.content = bbcodeContentIncludingMathLive(studentContent);
+            }
+        } else if (activity.correction > 1) {
+            activityData.content = fillInManager.returnCorrectedContent(activity, content);
+        } 
+
+        return activityData;
+    }
+
+    returnCorrectedContent(activity, content) {
+        let     studentContentString = content.fillInFields.contentForTeacher;
+        const   studentResponses = JSON.parse(activity.response),
+                solution = JSON.parse(activity.activity.solution);
+
+        if (studentResponses != null && studentResponses != "") { 
+            studentResponses.forEach((response, i) => {
+                const   autoWidthStyle = 'style="width:' + (response.length + 2) + 'ch"',
+                        answer = studentContentString.match(/\[answer\](.*?)\[\/answer\]/g)[0];
+
+                if (response == solution[i]) {
+                    studentContentString = studentContentString.replace(answer, `<input type="text" id="correction-student-fill-in-field-${i}" ${autoWidthStyle} readonly class="fill-in-answer-teacher answer-student answer-correct" value="${response}">`);
+                } else {
+                    studentContentString = studentContentString.replace(answer, `<input type="text" id="correction-student-fill-in-field-${i}" ${autoWidthStyle} readonly class="fill-in-answer-teacher answer-student answer-incorrect" value="${response}">`);
+                }
+
+            });
+            return bbcodeContentIncludingMathLive(studentContentString);
+        }
+    }
+
+    fillInValidateActivityOnePageCourse(activityId, activityLink, corretion) {
+        let studentResponse = [];
+
+        if (corretion == 1) {
+            for (let i = 1; i < $(`input[id^="student-fill-in-field-${activityId}"]`).length+1; i++) {
+                let string = document.getElementById(`student-fill-in-field-${activityId}-${i}`).value;
+                studentResponse.push(string);
+            } 
+        }
+
+        Main.getClassroomManager().saveNewStudentActivity(activityId, corretion, null, JSON.stringify(studentResponse), activityLink).then((response) => {
+            fillInManager.showErrors(response, activityId);
+            coursesManager.displayHintForOnePageCourse(response, activityId);
+            if (response.hasOwnProperty('activity')) {
+                coursesManager.manageValidateReponse(response);
+            }
+        });
+    }
+
+    showErrors(response, activityId = null) {
+        if (!response.hasOwnProperty('badResponse')) {
+            return;
+        }
+
+        let activityTag = activityId != null ? `-${activityId}` : "";
+
+        displayNotification('#notif-div', "classroom.activities.wrongAnswerLarge", "error");
+        let lengthResponse = $(`input[id^="student-fill-in-field${activityTag}"]`).length;
+        for (let i = 1; i < lengthResponse+1; i++) {
+            if (response.badResponse.includes(i-1)) {
+                $(`#student-fill-in-field${activityTag}-${i}`).css("border","2px solid var(--correction-0)");
+            } else {
+                $(`#student-fill-in-field${activityTag}-${i}`).css("border","2px solid var(--correction-3)");
+            }
+        }
     }
 }
 

@@ -82,7 +82,7 @@ VS_SET_FROM=your_website.com
 VS_DEMOSTUDENT=vittademo
 
 # path to use for the activity logger(ie: routing/Routing.php)
-VS_LOG_PATHH=/logs/log.log
+VS_LOG_PATH=/logs/log.log
 
 # setup the new admin data
 ADMIN_PSEUDO=PSEUDO
@@ -97,6 +97,10 @@ USER_PHONE=false
 USER_TEACHER_GRADE=false
 USER_TEACHER_SUBJECT=false
 USER_TEACHER_SCHOOL=false
+
+#Setup the dislay name and color in the mail
+LMS_NAME="LMS NAME"
+LMS_COLOR=357A8A
 
 
 # if set to false, the automatique mail sent before registration will be deactivate
@@ -220,6 +224,7 @@ email directory tree
 |       +---fr_confirm_email_update.php
 +---gulp
 ```
+
 Note: your email template have to have a ```<div> <?php echo  $body;?> </div>``` variable hard coded.
 
 If you go to openSteamLMS/vendor/vtuser/src/Controller/ControllerUser, you will find the register and update_user_infos methods that have a ```$body``` defined.
@@ -230,8 +235,9 @@ This $body variable will be injected inside your html emails before sending each
 
 The current repository only contains front elements of the LMS. The back end is mainly located in the dependencies (in the vendor folder) :
 
-- [vuser](https://github.com/vittascience/vuser) : current version (1.2.8)
-- vinterfaces (not public yet) : current version (1.4.2)
-- [vclassroom](https://github.com/vittascience/vclassroom) : current version (1.3.9)
-- vlearn (not public yet) : current version (1.3.6)
-- [vutils](https://github.com/vittascience/vutils) : current version (1.2.9)
+- [vuser](https://github.com/vittascience/vuser) : current version (1.2.11)
+- vinterfaces (not public yet) : current version (1.4.35)
+- [vclassroom](https://github.com/vittascience/vclassroom) : current version (1.3.15)
+- vlearn (not public yet) : current version (1.4.04)
+- [vutils](https://github.com/vittascience/vutils) : current version (1.2.22)
+

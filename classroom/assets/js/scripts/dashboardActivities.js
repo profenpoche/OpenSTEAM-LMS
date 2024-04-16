@@ -31,8 +31,10 @@ function activityItem(activity, state) {
 
     let dateEndNotif = activity.activity.isLti ? "style='display:none'" : "";
     let html = `<div class="activity-item">
+    <div>
                     <div class="activity-card ${activityType} ">
-                        <div class="${activityStatus}" data-toggle="tooltip" title="${activityStatusTitle}"><div class="ribbon__content"></div></div>
+                        
+                        <div class="${activityStatus}" data-bs-toggle="tooltip" title="${activityStatusTitle}"><div class="ribbon__content"></div></div>
                         <div class="activity-card-top">
                             ${activity.activity.isAutocorrect ? `<img src='${_PATH}assets/media/auto-icon.svg' title='Auto'>` : "" }
                         </div>
@@ -45,8 +47,8 @@ function activityItem(activity, state) {
     }
 
     html += `</div></div></div>`
-    html += `<h3 data-toggle="tooltip" title="${activity.activity.title}" class="activity-item-title">${activity.activity.title}</h3>`
-    html += `</div>`
+    html += `<h3 data-bs-toggle="tooltip" title="${activity.activity.title}" class="activity-item-title">${activity.activity.title}</h3>`
+    html += `</div></div>`
 
     return html;
 }
@@ -55,9 +57,10 @@ function courseItem(course, state) {
 
     let activityStatus = "";
     //let dateEndNotif = activity.activity.isLti ? "style='display:none'" : "";
-    let html = `<div class="course-item" onclick="coursesManager.readCourseFromStudent('${course.course.id}')">
-                    <div class="course-card">
-                        <div class="${activityStatus}" data-toggle="tooltip" title="${course.course.title}"><div class="ribbon__content"></div></div>
+    let html = `<div class="course-item" onclick="coursesManager.${course.course.format == 1 ? "readCourseOnePage" : "readCourseFromStudent"}('${course.course.id}', '${course.id}')">
+                <div>
+                    <div class="course-card">        
+                        <div class="${activityStatus}" data-bs-toggle="tooltip" title="${course.course.title}"><div class="ribbon__content"></div></div>
                         <img src="${_PATH}assets/media/cards/card-course.png" class="course-card-img">
                         <div class="course-card-info">
                             <div class="course-card-top">
@@ -74,8 +77,8 @@ function courseItem(course, state) {
     }
 
     html += `</div></div></div></div>`
-    html += `<h3 data-toggle="tooltip" title="${course.course.title}" class="activity-item-title">${course.course.title}</h3>`
-    html += `</div>`
+    html += `<h3 data-bs-toggle="tooltip" title="${course.course.title}" class="activity-item-title">${course.course.title}</h3>`
+    html += `</div></div>`
 
     return html;
 }
@@ -86,7 +89,7 @@ function teacherSandboxItem(json) {
                     <div class="sandbox-card sandbox-card-` + json.interface + `" data-id="${json.id}" data-href="/` + json.interface + `/?link=` + json.link + `&embed=1">
                         <div class="sandbox-card-top">
                         <i class="fas fa-share fa-2x" style="grid-column-start: 1; grid-column-end: 1;" data-link="${json.link}" ></i>      
-                            <div class="dropdown"><i class="fas fa-cog fa-2x" style="grid-column-start: 3; grid-column-end: 3;" type="button" id="dropdown-teacherSandboxItem-${json.id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                            <div class="dropdown"><i class="fas fa-cog fa-2x" style="grid-column-start: 3; grid-column-end: 3;" type="button" id="dropdown-teacherSandboxItem-${json.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                     <div class="dropdown-menu" aria-labelledby="dropdown-teacherSandboxItem-${json.id}">`
     if (UserManager.getUser().isRegular) {
         html += `<li class="classroom-clickable col-12 dropdown-item" onclick="integrateProject('${location.origin}/${json.interface}/?link=${json.link}&embed=1')" href="#">` + i18next.t('classroom.activities.integrate') + `</li>`
@@ -117,7 +120,7 @@ function teacherActivityItem(activity, displayStyle) {
                                 <div class="activity-card-top">
                                 ${activity.isAutocorrect ? `<img src='${_PATH}assets/media/auto-icon.svg' title='Auto'>` : "" }
                                 <div class="dropdown">
-                                    <i class="fas fa-cog fa-2x" type="button" id="dropdown-activityItem-${activity.id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-cog fa-2x" type="button" id="dropdown-activityItem-${activity.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     </i>
                                     <div class="dropdown-menu" aria-labelledby="dropdown-activityItem-${activity.id}" data-id="${activity.id}">
                                         <li class="classroom-clickable col-12 dropdown-item" href="#" onclick="attributeActivity(${activity.id})" style="border-bottom:2px solid rgba(0,0,0,.15">${capitalizeFirstLetter(i18next.t('words.attribute'))}</li>
@@ -125,6 +128,7 @@ function teacherActivityItem(activity, displayStyle) {
                                         <li class=" classroom-clickable col-12 dropdown-item" onclick="activityModify(${activity.id})" href="#">${capitalizeFirstLetter(i18next.t('words.modify'))}</li>
                                         <li class=" classroom-clickable col-12 dropdown-item" onclick="activityModify(${activity.id}, true)" href="#">${capitalizeFirstLetter(i18next.t('words.rename'))}</li>
                                         <li class="dropdown-item modal-activity-delete classroom-clickable col-12" href="#">${capitalizeFirstLetter(i18next.t('words.delete'))}</li>
+                                        <li class=" classroom-clickable col-12 dropdown-item" onclick="exportActivityToJSON(${activity.id})" href="#">${capitalizeFirstLetter(i18next.t('newActivities.export'))}</li>
                                         <li class="classroom-clickable col-12 dropdown-item" href="#" onclick="foldersManager.moveToFolderModal(${activity.id}, 'activity')">${capitalizeFirstLetter(i18next.t('classroom.activities.moveToFolder'))}</li>
                                     </div>
                                 </div> 
@@ -136,7 +140,7 @@ function teacherActivityItem(activity, displayStyle) {
                                 </div>
                             </div>
                             </div>
-                            <h3 data-toggle="tooltip" title="${activity.title}" class="activity-item-title">${activity.title}</h3>
+                            <h3 data-bs-toggle="tooltip" title="${activity.title}" class="activity-item-title">${activity.title}</h3>
                         </div>
                     </div>`
     } else if (displayStyle == "list") {
@@ -166,7 +170,7 @@ function teacherActivityItem(activity, displayStyle) {
                 
                 <div class="activity-list-options">
                     <div class="activity-list-options dropdown">
-                        <i class="fas fa-cog fa-2x" type="button" id="dropdown-list-activityItem-${activity.id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-cog fa-2x" type="button" id="dropdown-list-activityItem-${activity.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         </i>
                         <div class="dropdown-menu" aria-labelledby="dropdown-list-activityItem-${activity.id}" data-id="${activity.id}">
                             <li class="classroom-clickable col-12 dropdown-item" href="#" onclick="attributeActivity(${activity.id})" style="border-bottom:2px solid rgba(0,0,0,.15">${capitalizeFirstLetter(i18next.t('words.attribute'))}</li>
@@ -174,7 +178,8 @@ function teacherActivityItem(activity, displayStyle) {
                             <li class=" classroom-clickable col-12 dropdown-item" onclick="activityModify(${activity.id})" href="#">${capitalizeFirstLetter(i18next.t('words.modify'))}</li>
                             <li class=" classroom-clickable col-12 dropdown-item" onclick="activityModify(${activity.id}, true)" href="#">${capitalizeFirstLetter(i18next.t('words.rename'))}</li>
                             <li class="dropdown-item modal-activity-delete classroom-clickable col-12" href="#">${capitalizeFirstLetter(i18next.t('words.delete'))}</li>
-                            <li class="classroom-clickable col-12 dropdown-item" href="#" onclick="foldersManager.moveToFolderModal(${activity.id}, 'activity')">${capitalizeFirstLetter(i18next.t('classroom.activities.moveToFolder'))}</li>
+                            <li class=" classroom-clickable col-12 dropdown-item" onclick="exportActivityToJSON(${activity.id})" href="#">${capitalizeFirstLetter(i18next.t('newActivities.export'))}</li>
+                            <li class="classroom-clickable col-12 dropdown-item" href="#" onclick="foldersManager.moveToFolderModal(${activity.id}, 'activity')"></li>
                         </div>
                     </div> 
                 </div>
@@ -197,7 +202,7 @@ function teacherFolder(folder, displayStyle) {
                             <img class="folder-open-icon" src="${_PATH}assets/media/folders/folder_open_icon.svg" onload="SVGInject(this)">
                             <div class="folder-card-top">
                                 <div class="dropdown">
-                                    <i class="fas fa-cog fa-2x" type="button" id="dropdown-folder-${folder.id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-cog fa-2x" type="button" id="dropdown-folder-${folder.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     </i>
                                     <div class="dropdown-menu" aria-labelledby="dropdown-folder-${folder.id}" data-id="${folder.id}">
                                         <li class="classroom-clickable col-12 dropdown-item" href="#" onclick="foldersManager.updateFolder(${folder.id})">${capitalizeFirstLetter(i18next.t('manager.buttons.update'))}</li>
@@ -213,7 +218,7 @@ function teacherFolder(folder, displayStyle) {
                                 </div>
                             </div>
                         </div>
-                        <h3 data-toggle="tooltip" title="${folder.name}" class="activity-item-title">${folder.name}</h3>
+                        <h3 data-bs-toggle="tooltip" title="${folder.name}" class="activity-item-title">${folder.name}</h3>
                     </div>
                 </div>`
     } else if (displayStyle == "list") {
@@ -230,7 +235,7 @@ function teacherFolder(folder, displayStyle) {
 
                                 <div class="folder-list-options ">
                                     <div class="folder-list-options dropdown">
-                                        <i class="fas fa-cog fa-2x" type="button" id="dropdown-list-folder-${folder.id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-cog fa-2x" type="button" id="dropdown-list-folder-${folder.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         </i>
                                         <div class="dropdown-menu" aria-labelledby="dropdown-list-folder-${folder.id}" data-id="${folder.id}">
                                             <li class="classroom-clickable col-12 dropdown-item" href="#" onclick="foldersManager.updateFolder(${folder.id})">${capitalizeFirstLetter(i18next.t('manager.buttons.update'))}</li>
@@ -264,7 +269,7 @@ function classeItem(classe, nbStudents, students) {
                 <div class="class-card-top"  data-id="${classe.id}" data-link="${classe.link}">
                 <span><i class="fas fa-user fa-2x"></i></i> ${nbStudents}</span>
                 ${remainingCorrectionsSpanElt}
-                <div class="dropdown"><i class="fas fa-cog fa-2x" type="button" id="dropdown-classeItem-${classe.id}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
+                <div class="dropdown"><i class="fas fa-cog fa-2x" type="button" id="dropdown-classeItem-${classe.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
                     <div class="dropdown-menu" aria-labelledby="dropdown-classeItem-${classe.id}">
                 <li class="modal-classroom-modify classroom-clickable col-12 dropdown-item" href="#">` + capitalizeFirstLetter(i18next.t('words.modify')) + `</li>
                 <li class="dropdown-item modal-classroom-delete classroom-clickable col-12" href="#">` + capitalizeFirstLetter(i18next.t('words.delete')) + `</li>
@@ -298,7 +303,8 @@ function getRemainingCorrections(students) {
 
 function hasAttribution(student, ref) {
     let attribution = student.activities.filter(x => x.reference == ref)
-    if (attribution.length > 0) {
+    let attributionCourse = student.courses.filter(x => x.reference == ref)
+    if (attribution.length > 0 || attributionCourse.length > 0) {
         return true;
     }
     return false;
@@ -337,48 +343,60 @@ function classeList(classe, ref = null) {
             ClassroomSettings.studentCount++
         }
 
-        html += `<div class="c-checkbox ml-3 student-attribute-form-row">
+        html += `<div class="c-checkbox ms-3 student-attribute-form-row">
             <input type="checkbox" id="student-${student.user.id}" value="${student.user.id}" class="student-id" ${checked}>
             <label class="mb-0" for="student-${student.user.id}">
-                <img class="ml-1" src="${_PATH}assets/media/alphabet/${student.user.pseudo.slice(0, 1).toUpperCase()}.png" alt="Photo de profil"></img>
+                <img class="ms-1" src="${_PATH}assets/media/alphabet/${student.user.pseudo.slice(0, 1).toUpperCase()}.png" alt="Photo de profil"></img>
                 <span>${student.user.pseudo}</span>
             </label>
         </div>`
     });
     html += `</div></div>`
     $('.student-number').html(ClassroomSettings.studentCount)
+    $("#assign-total-student-number-course").text(ClassroomSettings.studentCount)
 
     return html;
 }
+
 //filter activity
 $('body').on('click', '#filter-activity', function () {
-    let arrayKeywords = $('#filter-activity-input').val().split(' ')
-    if ($('#filter-activity-select').val() == 'asc') {
-        teacherActivitiesDisplay(filterTeacherActivityInList(arrayKeywords, "id", false), arrayKeywords, false)
-    } else {
-        teacherActivitiesDisplay(filterTeacherActivityInList(arrayKeywords, "id", true), arrayKeywords, true)
-    }
+    processDisplay();
 })
 
 $('body').on('change', '#filter-activity-select', function () {
-    let arrayKeywords = $('#filter-activity-input').val().split(' ')
-    if ($('#filter-activity-select').val() == 'asc') {
-        teacherActivitiesDisplay(filterTeacherActivityInList(arrayKeywords, "id", false), arrayKeywords, false)
-    } else {
-        teacherActivitiesDisplay(filterTeacherActivityInList(arrayKeywords, "id", true), arrayKeywords, true)
-    }
+    processDisplay();
 })
 
 $(document).on('keyup', function (e) {
     if ($("#filter-activity-input").is(":focus") || $("#filter-activity").is(":focus") || $("#filter-activity-select").is(":focus")) {
-        let arrayKeywords = $('#filter-activity-input').val().split(' ')
-        if ($('#filter-activity-select').val() == 'asc') {
-            teacherActivitiesDisplay(filterTeacherActivityInList(arrayKeywords, "id", false), arrayKeywords, false)
-        } else {
-            teacherActivitiesDisplay(filterTeacherActivityInList(arrayKeywords, "id", true), arrayKeywords, true)
-        }
+        processDisplay();
     }
 });
+
+function processDisplay() {
+    const excludedType = Main.getClassroomManager().excludedActivityType;
+    const excludedObject = Main.getClassroomManager().excludedObjectFromDashboard;
+    const tags = getTagsSelected();
+
+    let arrayKeywords = $('#filter-activity-input').val().split(' ')
+    if ($('#filter-activity-select').val() == 'asc') {
+        teacherActivitiesDisplay(filterTeacherActivityInList(arrayKeywords, "id", false, excludedType, tags), arrayKeywords, false, excludedObject)
+    } else {
+        teacherActivitiesDisplay(filterTeacherActivityInList(arrayKeywords, "id", true, excludedType, tags), arrayKeywords, true, excludedObject)
+    }
+}
+
+function getTagsSelected() {
+    let selectedTags = [];
+
+    // get checked elements filter-activity-type-
+    const checkedTags = document.querySelectorAll('[id^="filter-activity-type-"]:checked');
+    checkedTags.forEach(element => {
+        selectedTags.push(parseInt(element.dataset.id));
+    });
+
+    return selectedTags;
+}
 
 //filter sandbox
 $('body').on('click', '#filter-sandbox', function () {
@@ -433,12 +451,15 @@ $('body').on('click', '.activity-list, .activity-list-item, .activity-card, .act
             id = parseInt($(this).find(".info-tutorials").attr("data-id"));
             state = $(this).find(".info-tutorials").attr("data-state");
         }
-        if (this.parentElement.parentElement.id == 'list-activities-teacher') {
+
+        // add !this.parentElement.parentElement.id for the teacher dashboard
+        if (this.parentElement.parentElement.id == 'list-activities-teacher' || !this.parentElement.parentElement.id) {
             navigation = 'dashboard-activities-teacher';
         } else {
             navigation = 'dashboard-activities';
         }
         navigatePanel('classroom-dashboard-activity-panel', navigation, 'WK' + id, state);
+        
     }
 })
 
@@ -460,6 +481,7 @@ function activityWatch(id) {
 $('body').on('click', '.bilan-cell', function () {
     let self = $(this)
     if (!self.hasClass('no-activity')) {
+        breadcrumbManager.setClassroomOpening();
         navigatePanel('classroom-dashboard-activity-panel', 'dashboard-activities-teacher', 'AC' + parseInt(self.attr('data-id')), self.attr("data-state"))
     }
 })
@@ -575,7 +597,8 @@ function statusActivity(activity, state = true, formatedTimePast = '') {
 
 
 function loadActivityForTeacher() {
-
+    $('#activity-views-switcher').html('');
+    breadcrumbManager.setActivityTitle(Activity.activity.title);
 
     let isDoable = Activity.correction == null ? true : false;
     // Reset the inputs
@@ -728,12 +751,24 @@ function shuffleArray(array) {
     return arrayClone;
 }
 
-function manageDragAndDropText(studentContentString, preview = false) {
-    let studentResponses = preview ? Main.getClassroomManager()._createActivity.solution : JSON.parse(Activity.activity.solution);
+function manageDragAndDropText(studentContentString, preview = false, solution = null, activityId = false) {
+    let studentResponses = null;
+    if (solution == null) {
+        studentResponses = preview ? Main.getClassroomManager()._createActivity.solution : JSON.parse(Activity.activity.solution);
+    } else {
+        studentResponses = solution;
+    }
+
     let previewString = preview ? "-preview" : "";
+    let id = activityId ? "-"+activityId : "";
+    
     for (let i = 0; i < studentResponses.length; i++) {
-        let input = `<span class="dropable-items dropzone${previewString}" id="dz-${i}${previewString}"></span>`;
-        studentContentString = studentContentString.replace(`﻿`, input);
+        let input = `<span class="droppable-items dropzone${id}${previewString}" id="dz${id}-${i}${previewString}"></span>`;
+        // [answer]replace[/answer]
+        // get the answer
+        let answer = studentContentString.match(/\[answer\](.*?)\[\/answer\]/g)[0];
+        // replace the answer with the input
+        studentContentString = studentContentString.replace(answer, input);
     }
     return studentContentString;
 }
@@ -747,14 +782,35 @@ function manageCorrectionDiv(correction_div, correction, isFromCourse) {
     }
 }
 
+function returnCorrectionContent(correction_div, correction) {
+    let label = "",
+        correctionContent = "";
+
+    if (correction > 1 || (UserManager.getUser().isRegular && correction >= 1)) {
+        correctionContent = correction_div;
+    }
+
+    if (UserManager.getUser().isRegular && ($_GET('panel') == "classroom-dashboard-activity-panel-teacher")) {
+        label = i18next.t("classroom.activities.studentAnswer");
+    } else {
+        label = i18next.t("classroom.activities.yourAnswer");
+    }
+
+    const correctionData = {
+        label: label,
+        correction: correctionContent
+    }
+
+    return correctionData;
+}
+
 function manageLabelForActivity(isFromCourse = false) {
     let course = isFromCourse ? "-course" : "";
-    if (UserManager.getUser().isRegular && ($_GET('panel') == "classroom-dashboard-activity-panel-teacher")) {
+    if (UserManager.getUser().isRegular && ($_GET('panel') == "classroom-dashboard-activity-panel-teacher" || $_GET('panel') == "classroom-dashboard-activity-panel")) {
         $('#label-activity-student-response'+course).text(i18next.t("classroom.activities.studentAnswer"));
     } else {
         $('#label-activity-student-response'+course).text(i18next.t("classroom.activities.yourAnswer"));
     }
-    $('#label-activity-student-response'+course).localize();
 }
 
 function isTheActivityIsDoable(doable, hideValidationButton = false) {
@@ -822,7 +878,7 @@ function setPluriel(number) {
 function loadCourseAndActivityForStudents(isDoable, currentCourse = null, progressBar = false, isFromCourse = false) {
     // Reset the inputs
     resetInputsForActivity(isFromCourse);
-
+    breadcrumbManager.setActivityTitle(Activity.activity.title);
     let courseIndicator = isFromCourse ? "-course" : "";
 
     // Check if the activity has an introduction

@@ -16,7 +16,7 @@
 </script>
 <script src="assets/js/lib/popper-1.16.0/popper.min.js">
 </script>
-<script src="assets/js/lib/bootstrap-4.4.1/bootstrap.min.js">
+<script src="assets/js/lib/bootstrap-5.3.0/bootstrap.min.js">
 </script>
 <script src="assets/js/lib/i18next.js"></script>
 <script src="assets/js/lib/jquery-i18next.min.js"></script>
@@ -25,11 +25,11 @@
     src="assets/js/lib/i18nextBrowserLanguageDetector.min.js">
 </script>
 
-
-<!-- drag and drop bundle (need to be on top of assets)-->
-<link rel="stylesheet" stype="text/css" href="assets/css/dragula.css">
-<script src="assets/js/lib/dragula.js" ></script>
+<script src="assets/js/lib/draggable/draggable.js"></script>
+<!-- Breadcrumb management -->
+<script src="assets/js/main/BreadcrumbManager.js"></script>
 <!-- build:js-classroom -->
+<script src="assets/js/utils/get.js"></script>
 <script src="assets/js/utils/url.js"></script>
 <script src="assets/js/utils/parsingJson.js"></script>
 <script src="assets/js/utils/text.js"></script>
@@ -72,6 +72,7 @@
 <script src="assets/js/main/CustomActivityManager.js"></script>
 <!-- Folder management -->
 <script src="assets/js/main/FoldersManager.js" defer></script>
+
 
 <script>
     UIManager.init().then((resolve) => {
@@ -184,7 +185,7 @@
         }
     }
 </script>
-<script src="assets/js/utils/translate.js"></script>
+<script src="assets/js/utils/translate.js" defer></script>
 <!-- PLUGIN SCRIPTS-->
 
 <!-- END PLUGIN SCRIPTS -->
