@@ -1,5 +1,4 @@
 <?php
-
 ini_set('session.cookie_domain', '.kidaia.com');
 
 require_once '../bootstrap.php';
@@ -63,13 +62,16 @@ function cors()
 
         $origins[] = 'https://192.168.0.27:8100';
         $origins[] = 'http://192.168.0.37:8100';
-		$origins[] = 'https://192.168.0.37:8100';
+        $origins[] = 'https://192.168.0.37:8100';
         $origins[] = 'http://192.168.1.50:8100';
         $origins[] = 'http://192.168.2.15:8100';
-	$origins[] = 'http://192.168.1.200:8100';
-	$origins[] = 'http://192.168.1.50:8100';
-	$origins[] = 'https://ose.kidaia.com';
-	$origins[] = 'https://dev.ose.kidaia.com';
+        $origins[] = 'http://192.168.1.200:8100';
+	$origins[] = 'https://en.mathia.education';
+        $origins[] = 'http://192.168.1.50:8100';
+        $origins[] = 'https://ose.kidaia.com';
+        $origins[] = 'https://dev.ose.kidaia.com';
+        $origins[] = 'https://web.mathexpedition.com';
+
         if (isset($_SERVER['HTTP_ORIGIN'])) {
             if (in_array($_SERVER['HTTP_ORIGIN'], $origins)) {
                 header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN'] . "");
@@ -130,6 +132,7 @@ try {
             $user['isRegular'] = false;
         }
 
+
         $isFromGar = $entityManager->getRepository('User\Entity\ClassroomUser')
             ->find(intval($_SESSION["id"]));
         if ($isFromGar) {
@@ -148,7 +151,7 @@ try {
         }
     }
 
-    // get and scan the entire plugins folder for PHP files
+    // get and scan the entire plugins folder
     $pluginsDir = '../plugins';
     if (is_dir($pluginsDir)) {
         $pluginsFound = array_diff(scandir($pluginsDir), array('..', '.'));
@@ -158,7 +161,6 @@ try {
             if (!is_dir("../plugins/$singlePlugin")) {
                 continue;
             }
-
             $singlePluginFolders = array_diff(scandir("../plugins/$singlePlugin"), array('..', '.'));
 
             // convert snake_case from url param into PascalCase to find the right controller file to instanciate
@@ -169,15 +171,18 @@ try {
                 // check if the required controller file exists and require it 
                 if (file_exists("../plugins/$singlePlugin/Controller/$ControllerToInstanciate.php")) {
                     require_once "../plugins/$singlePlugin/Controller/" . $ControllerToInstanciate . ".php";
-
                     // instanciate the matching controller
                     $class = "Plugins\\$singlePlugin\\Controller\\" . $ControllerToInstanciate;
-                    $controller = new $class($entityManager, $user);
-
-                    // return data and exit the foreach loop with a break
-                    echo (json_encode($controller->action($action, $_POST)));
-                    $log->info($action, OK);
-                    exit;
+                    $controllerInstancied = new $class($entityManager, $user);
+                    
+                    $prop = new ReflectionProperty(get_class($controllerInstancied), 'actions');
+                    //if actions is accessible test if the controller have the action requested else try in all case
+                    if (($prop->isPublic() && array_key_exists($action, $controllerInstancied->actions)) || $prop->isProtected()){
+                        // return data and exit the foreach loop with a break
+                        echo (json_encode($controllerInstancied->action($action, $_POST)));
+                        $log->info($action, OK);
+                        exit;
+                    }
                 }
             }
         }
@@ -274,11 +279,11 @@ try {
             echo (json_encode($controller->action($action, $_POST)));
             $log->info($action, OK);
             break;
-        case 'upload':
+        case 'upload': 
             $action = lcfirst(str_replace('_', '', ucwords($action, '_')));
             $controllerUpload = new ControllerUpload($entityManager, $user);
             echo json_encode(call_user_func(
-                array($controllerUpload, $action)
+                array($controllerUpload,$action)
             ));
             break;
         case 'user_link_course':
