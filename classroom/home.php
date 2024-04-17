@@ -1,5 +1,5 @@
 <?php
-ini_set('session.cookie_domain', '.kidaia.com');
+//ini_set('session.cookie_domain', '.kidaia.com');
 session_start();
 
 $openClassroomDir = __DIR__."/../../openClassroom";

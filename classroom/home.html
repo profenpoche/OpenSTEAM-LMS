@@ -1,11 +1,11 @@
     <link rel="stylesheet" href="/classroom/assets/css/modal.css">
+    <link rel="stylesheet" href="/classroom/assets/plugins/css/acitiviesCSS.css">
+    <link rel="stylesheet" href="/classroom/assets/plugins/css/classe.css">
+    <link rel="stylesheet" href="/classroom/assets/plugins/css/dashboard.css">
+    <link rel="stylesheet" href="/classroom/assets/plugins/css/mainKidaia.css">
+    <link rel="stylesheet" href="/classroom/assets/plugins/css/panelGeneral.css">
+    <link rel="stylesheet" href="/classroom/assets/plugins/css/profil.css">
     <link rel="stylesheet" href="/classroom/assets/plugins/css/main.css">
-<link rel="stylesheet" href="/classroom/assets/plugins/css/acitiviesCSS.css">
-<link rel="stylesheet" href="/classroom/assets/plugins/css/classe.css">
-<link rel="stylesheet" href="/classroom/assets/plugins/css/dashboard.css">
-<link rel="stylesheet" href="/classroom/assets/plugins/css/mainKidaia.css">
-<link rel="stylesheet" href="/classroom/assets/plugins/css/panelGeneral.css">
-<link rel="stylesheet" href="/classroom/assets/plugins/css/profil.css">
 
     <script src="/classroom/assets/js/scripts/classroom-lang.js"></script>
     <base href="/app-lms/"/>
@@ -895,10 +895,10 @@
 
             <div class="col-auto mt-2">
                 <button class="btn c-btn-icon-only mx-1" onclick="foldersManager.displayModeSwitch('card')" id="switcherCard">
-                    <img src="assets/media/folders/cadrillage.svg" alt="arb-folders" onload="SVGInject(this)">
+                    <img src="/classroom/assets/media/folders/cadrillage.svg" alt="arb-folders" onload="SVGInject(this)">
                 </button>
                 <button class="btn c-btn-icon-only mx-1" onclick="foldersManager.displayModeSwitch('list')" id="switchList">
-                    <img src="assets/media/folders/arborescence.svg" alt="arb-folders" onload="SVGInject(this)">
+                    <img src="/classroom/assets/media/folders/arborescence.svg" alt="arb-folders" onload="SVGInject(this)">
                 </button>
             </div>
         </div>
@@ -2559,7 +2559,7 @@
 </script>
 <script src="/classroom/assets/js/lib/popper-1.16.0/popper.min.js">
 </script>
-<script src="assets/js/lib/bootstrap-5.3.0/bootstrap.min.js">
+<script src="/classroom/assets/js/lib/bootstrap-5.3.0/bootstrap.min.js">
 </script>
 <script src="/classroom/assets/js/lib/i18next.js"></script>
 <script src="/classroom/assets/js/lib/jquery-i18next.min.js"></script>
@@ -2568,29 +2568,30 @@
     src="/classroom/assets/js/lib/i18nextBrowserLanguageDetector.min.js">
 </script>
 
-<script src="assets/js/lib/draggable/draggable.js"></script>
+<script src="/classroom/assets/js/lib/draggable/draggable.js"></script>
 <!-- Breadcrumb management -->
-<script src="assets/js/main/BreadcrumbManager.js"></script>
+<script src="/classroom/assets/js/main/BreadcrumbManager.js"></script>
 <!-- build:js-classroom -->
-<script src="assets/js/utils/get.js"></script>
-<script src="assets/js/utils/url.js"></script>
-<script src="assets/js/utils/parsingJson.js"></script>
-<script src="assets/js/utils/text.js"></script>
-<script src="assets/js/lib/rotate.js"></script>
-<script src="assets/js/utils/bbcodeToHtml.js"></script>
-<script src="assets/js/utils/activityContentManager.js"></script>
-<script src="assets/js/utils/registrationTemplate.js"></script>
-<script src="assets/js/scripts/disconnect.js"></script>
-<script src="assets/js/scripts/dashboardActivities.js"></script>
-<script src="assets/js/scripts/teacherActivities.js"></script>
-<script src="assets/js/scripts/manageClassroom.js"></script>
-<script src="assets/js/scripts/displayPanel.js"></script>
-<script src="assets/js/main/modal.js"></script>
-<script src="assets/js/constants/modals.js"></script>
-<script src="assets/js/scripts/buttons.js"></script>
-<script src="assets/js/scripts/ActivityTracker.js"></script>
-<script src="assets/js/scripts/activityManager.js"></script>
-<script src="assets/js/scripts/classroomDisplay.js"></script>
+<script src="/classroom/assets/js/utils/get.js"></script>
+<script src="/classroom/assets/js/utils/url.js"></script>
+<script src="/classroom/assets/js/utils/parsingJson.js"></script>
+<script src="/classroom/assets/js/utils/text.js"></script>
+<script src="/classroom/assets/js/lib/rotate.js"></script>
+<script src="/classroom/assets/js/utils/bbcodeToHtml.js"></script>
+<script src="/classroom/assets/js/utils/activityContentManager.js"></script>
+<script src="/classroom/assets/js/utils/registrationTemplate.js"></script>
+<script src="/classroom/assets/js/utils/profilePicturePath.js"></script>
+<script src="/classroom/assets/js/scripts/disconnect.js"></script>
+<script src="/classroom/assets/js/scripts/dashboardActivities.js"></script>
+<script src="/classroom/assets/js/scripts/teacherActivities.js"></script>
+<script src="/classroom/assets/js/scripts/manageClassroom.js"></script>
+<script src="/classroom/assets/js/scripts/displayPanel.js"></script>
+<script src="/classroom/assets/js/main/modal.js"></script>
+<script src="/classroom/assets/js/constants/modals.js"></script>
+<script src="/classroom/assets/js/scripts/buttons.js"></script>
+<script src="/classroom/assets/js/scripts/ActivityTracker.js"></script>
+<script src="/classroom/assets/js/scripts/activityManager.js"></script>
+<script src="/classroom/assets/js/scripts/classroomDisplay.js"></script>
 <!-- end build -->
 <script src="/classroom/assets/js/main/Loader.js"></script>
 <script src="/classroom/assets/js/main/UIManager.js"></script>
@@ -2727,7 +2728,25 @@
         }
     }
 </script>
-<script src="assets/js/utils/translate.js" defer></script>
+<script src="/classroom/assets/js/utils/translate.js" defer></script>
+<script src="/classroom/assets/plugins/js/add_navigation_item.js"></script>
+<script src="/classroom/assets/plugins/js/ajoutModal.js"></script>
+<script src="/classroom/assets/plugins/js/monTitre.js"></script>
+<script src="/classroom/assets/plugins/js/panel.js"></script>
+<script src="/classroom/assets/plugins/js/panel_classe.js"></script>
+<script src="/classroom/assets/plugins/js/panel_tab.js"></script>
+<script src="/classroom/assets/plugins/js/profil.js"></script>
+<script src="/classroom/assets/plugins/js/change-texts-plugin.js"></script>
+<script src="/classroom/assets/plugins/js/change-texts.js"></script>
+<script src="/classroom/assets/plugins/js/CompetenciesManager.js"></script>
+<script src="/classroom/assets/plugins/js/CompetenciesPanel.js"></script>
+<script src="/classroom/assets/plugins/js/competencyDetail.js"></script>
+<script src="/classroom/assets/plugins/js/formCompetencies.js"></script>
+<script src="/classroom/assets/plugins/js/MyActivityAdditionalDetailsManager.js"></script>
+<script src="/classroom/assets/plugins/js/panelAttribuerCompetence.js"></script>
+<script src="/classroom/assets/plugins/js/script.js"></script>
+<script src="/classroom/assets/plugins/js/test.js"></script>
+
 <!-- PLUGIN SCRIPTS-->
 
 <div id="app-lms-panel">
@@ -2736,6 +2755,7 @@
 	<script src="/app-lms/polyfills.js" type="module"></script>
 	<script src="/app-lms/main.js" type="module"></script>
 </div>
+
 </body>
 
 </html>

@@ -5,7 +5,7 @@ if(!empty($_COOKIE["isFromGar"]) && empty($_SESSION['phpCAS']['user'])){
     return header("Location:/classroom/gar_user_disconnect.php");
 }
 ini_set('session.cookie_path', '/');
-ini_set('session.cookie_domain', '.kidaia.com');
+//ini_set('session.cookie_domain', '.kidaia.com');
 session_start();
 require_once(__DIR__ . "/../vendor/autoload.php");
 
@@ -35,7 +35,7 @@ require_once(__DIR__ . "/header.html");
 <link rel="stylesheet" href="/classroom/assets/css/main.css">
 
 <script src="./assets/js/lib/rotate.js"></script>
-<link rel="stylesheet" type="text/css" href="assets/js/lib/slick-1.8.1/slick/slick.css" />
+<link rel="stylesheet" type="text/css" href="/classroom/assets/js/lib/slick-1.8.1/slick/slick.css" />
 </head>
 
 <body>

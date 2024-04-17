@@ -303,7 +303,7 @@ class AutoBuildManager {
             this.pluginsList.forEach((plugin) => {
                 plugin.css.forEach((cssFile) => {
                     cssLinks.push(
-                        `<link rel="stylesheet" href="assets/plugins/css/${cssFile}">\n`
+                        `<link rel="stylesheet" href="/classroom/assets/plugins/css/${cssFile}">\n`
                     );
                 });
             });
@@ -329,7 +329,7 @@ class AutoBuildManager {
             this.pluginsList.forEach((plugin) => {
                 plugin.js.forEach((jsFile) => {
                     jsLinks.push(
-                        `<script src="assets/plugins/js/${jsFile}"></script>\n`
+                        `<script src="/classroom/assets/plugins/js/${jsFile}"></script>\n`
                     );
                 });
             });

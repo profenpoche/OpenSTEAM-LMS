@@ -1,5 +1,5 @@
 <?php
-ini_set('session.cookie_domain', '.kidaia.com');
+//ini_set('session.cookie_domain', '.kidaia.com');
 
 require_once '../bootstrap.php';
 
@@ -66,7 +66,7 @@ function cors()
         $origins[] = 'http://192.168.1.50:8100';
         $origins[] = 'http://192.168.2.15:8100';
         $origins[] = 'http://192.168.1.200:8100';
-	$origins[] = 'https://en.mathia.education';
+	    $origins[] = 'https://en.mathia.education';
         $origins[] = 'http://192.168.1.50:8100';
         $origins[] = 'https://ose.kidaia.com';
         $origins[] = 'https://dev.ose.kidaia.com';
@@ -111,7 +111,7 @@ $log = Log::createSharedInstance($controller, $logPath, Logger::NOTICE);
 cors();
 try {
     // Get User.
-    ini_set('session.cookie_domain', '.kidaia.com');
+    //ini_set('session.cookie_domain', '.kidaia.com');
     session_start();
     $user = null;
     if (isset($_SESSION["id"])) {
