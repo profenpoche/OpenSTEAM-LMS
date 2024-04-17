@@ -12,4 +12,5 @@ classroom/assets/plugins
 .buildpath
 /.idea
 /dev
+/app-lms
 classroom/assets/media/logo-kidaia.png
