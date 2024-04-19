@@ -14,9 +14,7 @@
         $("#activity-form-content").wysibb(wbbOpt);
     })
 </script>
-<script src="/classroom/assets/js/lib/popper-1.16.0/popper.min.js">
-</script>
-<script src="/classroom/assets/js/lib/bootstrap-5.3.0/bootstrap.min.js">
+<script src="/classroom/assets/js/lib/bootstrap-5.3.0/bootstrap.bundle.min.js">   
 </script>
 <script src="/classroom/assets/js/lib/i18next.js"></script>
 <script src="/classroom/assets/js/lib/jquery-i18next.min.js"></script>
@@ -78,6 +76,7 @@
     UIManager.init().then((resolve) => {
         UserManager.init().then((resolve) => {
                 Main.init().then((resolve) => {
+                    Main.ready=true;
                     const EVENTS_SCRIPTS = [{
                             id: "modals",
                             src: "/classroom/assets/js/scripts/loadModals.js"
@@ -189,12 +188,6 @@
 <!-- PLUGIN SCRIPTS-->
 
 <!-- END PLUGIN SCRIPTS -->
-<div id="app-lms-panel">
-	<app-root></app-root>
-	<script src="/app-lms/runtime.js" type="module"></script>
-	<script src="/app-lms/polyfills.js" type="module"></script>
-	<script src="/app-lms/main.js" type="module"></script>
-</div>
 </body>
 
 </html>
