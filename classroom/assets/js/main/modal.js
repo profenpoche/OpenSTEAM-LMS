@@ -233,7 +233,12 @@ Modal.prototype.clickOnExit = function (modal, cb) {
     if (this.contains(modal)) {
         let modalElem = document.getElementById(modal);
         let exitBtn = modalElem.querySelector('.vitta-modal-exit-btn');
-        exitBtn.addEventListener('click', cb);
+
+        const callback = () => {
+            cb()
+            exitBtn?.removeEventListener("click",callback)
+        }
+        exitBtn.addEventListener('click', callback);
     }
 }
 /**
@@ -273,7 +278,13 @@ Modal.prototype.setMessage = function (modal, msg, type = 'info') {
  * @param {string} event 
  */
 Modal.prototype.resetEventOnElement = function (elem, event = '') {
-    let element = document.getElementById(elem);
+    let element;
+    if(typeof elem === 'string'){
+        element = document.getElementById(elem);
+    }else{
+        element = elem;
+    }
+
     element.removeEventListener(event);
 }
 
