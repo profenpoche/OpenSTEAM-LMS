@@ -45,6 +45,9 @@ use Classroom\Controller\ControllerClassroomLinkUser;
 function cors()
     {
         $origins = array();
+        if (isset($_ENV['origins'])){
+            $origins= $_ENV['origins'];
+        }
         $origins[] = 'http://localhost:8100';
         $origins[] = 'http://localhost:8101';
         $origins[] = 'http://localhost:8000';

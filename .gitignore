@@ -1,6 +1,7 @@
 /vendor
 /node_modules
-.env 
+.env
+conf.ini
 composer.lock
 classroom/assets/plugins
 /EmailTemplates
