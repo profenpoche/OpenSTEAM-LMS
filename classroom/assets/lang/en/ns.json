@@ -1369,5 +1369,12 @@
 		"update": "Update the course",
 		"show": "Show course",
 		"informationWhenEmpty": "Click on the buttons above to add activities to the course."
+	},
+	"pep": {
+		"menu": {
+			"mystudents" : "My students",
+			"results" : "Results",
+			"assignations" : "Assignations"
+		}
 	}
 }
