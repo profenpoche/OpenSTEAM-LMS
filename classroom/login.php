@@ -6,6 +6,7 @@ if(!empty($_COOKIE["isFromGar"]) && empty($_SESSION['phpCAS']['user'])){
 }
 ini_set('session.cookie_path', '/');
 //ini_set('session.cookie_domain', '.kidaia.com');
+setcookie('lng','en');
 session_start();
 require_once(__DIR__ . "/../vendor/autoload.php");
 
