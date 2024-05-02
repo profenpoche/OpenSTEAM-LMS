@@ -114,7 +114,9 @@ $log = Log::createSharedInstance($controller, $logPath, Logger::NOTICE);
 cors();
 try {
     // Get User.
-    //ini_set('session.cookie_domain', '.kidaia.com');
+    if (isset($_ENV['COOKIE_DOMAIN'])){
+        ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
+    }
     session_start();
     $user = null;
     if (isset($_SESSION["id"])) {

@@ -4,10 +4,7 @@ if(!empty($_COOKIE["isFromGar"]) && empty($_SESSION['phpCAS']['user'])){
     setcookie("isGarTest","",time()-1);
     return header("Location:/classroom/gar_user_disconnect.php");
 }
-ini_set('session.cookie_path', '/');
-//ini_set('session.cookie_domain', '.kidaia.com');
-setcookie('lng','en');
-session_start();
+
 require_once(__DIR__ . "/../vendor/autoload.php");
 
 use Dotenv\Dotenv;
@@ -20,6 +17,12 @@ use Database\DatabaseManager;
 // load data from .env file
 $dotenv = Dotenv::createImmutable(__DIR__."/../");
 $dotenv->safeLoad();
+ini_set('session.cookie_path', '/');
+if (isset($_ENV['COOKIE_DOMAIN'])){
+    ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
+}
+setcookie('lng','en');
+session_start();
 
 // load demoStudent name from .env file or set it to default demoStudent
 $demoStudent = !empty($_ENV['VS_DEMOSTUDENT']) ? $_ENV['VS_DEMOSTUDENT'] : 'demostudent';

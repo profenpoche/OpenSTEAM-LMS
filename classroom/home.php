@@ -1,7 +1,4 @@
 <?php
-//ini_set('session.cookie_domain', '.kidaia.com');
-session_start();
-
 $openClassroomDir = __DIR__."/../../openClassroom";
 if(is_dir($openClassroomDir)){
     require __DIR__."/../../vendor/autoload.php";
@@ -14,7 +11,10 @@ use Dotenv\Dotenv;
 // load data from .env file
 $dotenv = Dotenv::createImmutable(__DIR__."/../");
 $dotenv->safeLoad();
-
+if (isset($_ENV['COOKIE_DOMAIN'])){
+    ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
+}
+session_start();
 // load demoStudent name from .env file or set it to default demoStudent
 $demoStudent = !empty($_ENV['VS_DEMOSTUDENT']) ? $_ENV['VS_DEMOSTUDENT'] : 'demostudent';
 
