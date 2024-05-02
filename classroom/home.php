@@ -12,6 +12,7 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(__DIR__."/../");
 $dotenv->safeLoad();
 if (isset($_ENV['COOKIE_DOMAIN'])){
+    ini_set('session.cookie_samesite', 'None');
     ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
 }
 session_start();

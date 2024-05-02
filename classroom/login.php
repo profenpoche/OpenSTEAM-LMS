@@ -19,6 +19,7 @@ $dotenv = Dotenv::createImmutable(__DIR__."/../");
 $dotenv->safeLoad();
 ini_set('session.cookie_path', '/');
 if (isset($_ENV['COOKIE_DOMAIN'])){
+    ini_set('session.cookie_samesite', 'None');
     ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
 }
 setcookie('lng','en');
