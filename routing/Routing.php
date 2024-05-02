@@ -115,6 +115,7 @@ cors();
 try {
     // Get User.
     if (isset($_ENV['COOKIE_DOMAIN'])){
+        ini_set('session.cookie_secure', "1");
         ini_set('session.cookie_samesite', 'None');
         ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
     }
