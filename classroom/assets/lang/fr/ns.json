@@ -1,4 +1,6 @@
-{
+{	"title":{
+	"app" : "Accès application"
+	},
 	"classroom": {
 		"login": {
 			"noClass": "Le code entré ne correspond à aucune classe.",
