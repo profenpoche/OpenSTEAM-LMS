@@ -133,8 +133,10 @@ try {
         }
         try {
             $regular = $entityManager->getRepository('User\Entity\Regular')
-                ->find(intval($_SESSION["id"]))->jsonSerialize();
-            $user['isRegular'] = $regular['email'];
+            ->find(intval($_SESSION["id"]));
+            $regularDS = $regular->jsonSerialize();
+            $user['isRegular'] = $regularDS['email'];
+            $user['isPrivate']= $regular->isPrivateFlag();
         } catch (error $e) {
             $user['isRegular'] = false;
         }
