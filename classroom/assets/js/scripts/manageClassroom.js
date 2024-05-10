@@ -191,6 +191,7 @@ function persistDeleteClassroom() {
             deleteClassroomInList(classroom.link);
             classroomsDisplay();
             displayNotification('#notif-div', "classroom.notif.classroomDeleted", "success", `'{"classroomName": "${classroomFullName}"}'`);
+            $('#validation-delete-classroom').val("");
             pseudoModal.closeAllModal();
         })
         ClassroomSettings.classroom = null;
@@ -202,6 +203,7 @@ function persistDeleteClassroom() {
 function cancelDeleteClassroom() {
     pseudoModal.closeAllModal();
     Main.getClassroomManager()._selectedClassroomToDelete = null;
+    $('#validation-delete-classroom').val("");
 }
 
 //classroom modal-->modifier
