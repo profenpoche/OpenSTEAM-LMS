@@ -88,7 +88,7 @@ function cors()
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
             if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD'])) {
-                header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+		    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
             }
 
             if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS'])) {
@@ -119,9 +119,16 @@ try {
         ini_set('session.cookie_samesite', 'None');
         ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
     }
+
+if (isset($_SERVER['HTTP_CONNECTIONSID']) && (!is_null($_SERVER['HTTP_CONNECTIONSID']) && $_SERVER['HTTP_CONNECTIONSID'] != '' && $_SERVER['HTTP_CONNECTIONSID'] != 'null') && (!isset($_COOKIE['PHPSESSID']) || $_COOKIE['PHPSESSID'] != $_SERVER['HTTP_CONNECTIONSID'])) {
+        $_COOKIE['PHPSESSID'] = $_SERVER['HTTP_CONNECTIONSID'];
+        setcookie('PHPSESSID', $_COOKIE['PHPSESSID']);
+    }
+
     session_start();
+
     $user = null;
-    if (isset($_SESSION["id"])) {
+    if (isset($_SESSION["id"]) && strpos($_SESSION["id"], 'classroom_') === false){
         $user = $entityManager->getRepository('User\Entity\User')->find(intval($_SESSION["id"]))->jsonSerialize();
         $storedClassroom = $entityManager->getRepository('Classroom\Entity\ClassroomLinkUser')->findBy(['user' => $_SESSION["id"]]);
         if ($storedClassroom) {
@@ -270,7 +277,11 @@ try {
             $log->info($action, OK);
             break;
         case 'session':
-            echo (json_encode($user));
+		if($user){
+			echo (json_encode($user));
+		} else {
+			
+		}
             $log->info($action, OK);
             break;
         case 'superadmin':
