@@ -113,6 +113,9 @@ $logPath = isset($_ENV['VS_LOG_PATH']) ? $_ENV['VS_LOG_PATH'] : "/logs/log.log";
 $log = Log::createSharedInstance($controller, $logPath, Logger::NOTICE);
 cors();
 try {
+	
+	ini_set('session.cookie_path', '/');
+
     // Get User.
     if (isset($_ENV['COOKIE_DOMAIN'])){
         ini_set('session.cookie_secure', "1");
@@ -122,7 +125,7 @@ try {
 
 if (isset($_SERVER['HTTP_CONNECTIONSID']) && (!is_null($_SERVER['HTTP_CONNECTIONSID']) && $_SERVER['HTTP_CONNECTIONSID'] != '' && $_SERVER['HTTP_CONNECTIONSID'] != 'null') && (!isset($_COOKIE['PHPSESSID']) || $_COOKIE['PHPSESSID'] != $_SERVER['HTTP_CONNECTIONSID'])) {
         $_COOKIE['PHPSESSID'] = $_SERVER['HTTP_CONNECTIONSID'];
-        setcookie('PHPSESSID', $_COOKIE['PHPSESSID']);
+        setcookie('PHPSESSID', $_COOKIE['PHPSESSID'], null, '/', $_ENV['COOKIE_DOMAIN']);
     }
 
     session_start();

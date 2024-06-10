@@ -26,6 +26,11 @@ if (isset($_ENV['COOKIE_DOMAIN'])){
 setcookie('lng','en');
 session_start();
 
+if(isset($_SESSION['id']) && strpos($_SESSION["id"], 'classroom_') === 0){
+	$_SESSION['id'] = null;
+        $_SESSION['token'] = null;
+
+}
 // load demoStudent name from .env file or set it to default demoStudent
 $demoStudent = !empty($_ENV['VS_DEMOSTUDENT']) ? $_ENV['VS_DEMOSTUDENT'] : 'demostudent';
 
@@ -45,7 +50,10 @@ require_once(__DIR__ . "/header.html");
 </head>
 
 <body>
-    <?php
+<?php
+
+    
+    //echo '<pre>';print_r($_SESSION);echo '</pre>';
     // add script tag with demoStudent name to make it available on the whole site
     $demoStudent = str_replace('"', '', $demoStudent);
     echo "<script>const demoStudentName = `{$demoStudent}`</script>";
