@@ -123,13 +123,18 @@ try {
         ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
     }
 
-if (isset($_SERVER['HTTP_CONNECTIONSID']) && (!is_null($_SERVER['HTTP_CONNECTIONSID']) && $_SERVER['HTTP_CONNECTIONSID'] != '' && $_SERVER['HTTP_CONNECTIONSID'] != 'null') && (!isset($_COOKIE['PHPSESSID']) || $_COOKIE['PHPSESSID'] != $_SERVER['HTTP_CONNECTIONSID'])) {
+    session_start();
+    if (isset($_SERVER['HTTP_CONNECTIONSID']) && (!is_null($_SERVER['HTTP_CONNECTIONSID']) && $_SERVER['HTTP_CONNECTIONSID'] != '' && $_SERVER['HTTP_CONNECTIONSID'] != 'null') && (!isset($_COOKIE['PHPSESSID']) || $_COOKIE['PHPSESSID'] != $_SERVER['HTTP_CONNECTIONSID'])) {
+        $keepIdSession = $_SESSION["id"];
+        session_commit();
         $_COOKIE['PHPSESSID'] = $_SERVER['HTTP_CONNECTIONSID'];
         setcookie('PHPSESSID', $_COOKIE['PHPSESSID'], null, '/', $_ENV['COOKIE_DOMAIN']);
+        session_id($_COOKIE['PHPSESSID']);
+        session_start();
+        $_SESSION["id"] = $keepIdSession;
     }
 
-    session_start();
-
+    
     $user = null;
     if (isset($_SESSION["id"]) && strpos($_SESSION["id"], 'classroom_') === false){
         $user = $entityManager->getRepository('User\Entity\User')->find(intval($_SESSION["id"]))->jsonSerialize();
