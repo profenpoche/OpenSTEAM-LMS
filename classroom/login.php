@@ -23,7 +23,7 @@ if (isset($_ENV['COOKIE_DOMAIN'])){
     ini_set('session.cookie_samesite', 'None');
     ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
 }
-setcookie('lng','en');
+setcookie('lng',!empty($_ENV['VS_LANG']) ? $_ENV['VS_LANG'] : 'en');
 session_start();
 
 if(isset($_SESSION['id']) && strpos($_SESSION["id"], 'classroom_') === 0){
