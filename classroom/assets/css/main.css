@@ -441,7 +441,7 @@ button {
 
 
 .sidebar-classroom div img {
-    width: 65%;
+    width: 25%;
     height: auto;
     background-color: white;
 
@@ -495,7 +495,7 @@ button {
 
 #classroom-dashboard-container {
     --mobile-top-bar-height: 3.5em;
-    --mobile-bottom-bar-height: 110px;
+    --mobile-bottom-bar-height: 10%;
 
     --sidebar-size: 150px;
     --topbar-size: 3rem;
@@ -624,7 +624,7 @@ button {
     }
 
     .sidebar-classroom div:not(:first-child) span {
-        display: none;
+        /*display: none;*/
     }
 
 }
@@ -719,6 +719,7 @@ button {
     #classroom-dashboard-top-bar {
         width: 100%;
         padding: 0.25em 0.5em;
+        display: none;
     }
 
     #classroom-dashboard-content {
