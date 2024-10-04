@@ -136,6 +136,9 @@ try {
 
     
     $user = null;
+    if ($action === 'disconnect' && isset($_SESSION["classroom_id"]) ){
+        unset($_SESSION["classroom_id"]);
+    }
     if (isset($_SESSION["id"]) && strpos($_SESSION["id"], 'classroom_') === false){
         $user = $entityManager->getRepository('User\Entity\User')->find(intval($_SESSION["id"]))->jsonSerialize();
         $storedClassroom = $entityManager->getRepository('Classroom\Entity\ClassroomLinkUser')->findBy(['user' => $_SESSION["id"]]);
