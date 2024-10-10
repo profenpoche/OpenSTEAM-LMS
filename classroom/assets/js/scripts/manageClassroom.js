@@ -1096,87 +1096,89 @@ function displayStudentsInClassroom(students, link=false) {
         // Loop in the classroom activities index (with ids) to generate the dashboard table header and body
         for (let i = 0; i < arrayIndexesActivities.length; i++) {
             const currentActivity = arrayActivities[i];
-            let isCourse = false;
-            if (currentActivity.hasOwnProperty('courseState')) {
-                isCourse = true;
-            }
-
-            if (element.user.pseudo == demoStudentName) {
-                let thModular = "";
-                let optionContent = "";
-                if (!isCourse) {
-                    thModular = `<th data-bs-toggle="tooltip" class="border-header-class" data-bs-placement="top" title="${arrayIndexesActivities[i].title.replaceAll('"', " ")}">`;
-                    optionContent = `<li class="ms-5" style="border-bottom:solid 2px black;">
-                                        <b>${ arrayIndexesActivities[i].title }</b>
-                                    </li>
-                                    <li class="classroom-clickable col-12 dropdown-item " onclick="activityWatch(${arrayIndexesActivities[i].id})" ><i class="fas fa-eye"></i> <span data-i18n="classroom.classes.panel.seeActivity">Voir l'activité</span></li>
-                                    <li class=" classroom-clickable col-12 dropdown-item" onclick="activityModify(${arrayIndexesActivities[i].id})"><i class="fas fa-pen"></i> <span data-i18n="classroom.classes.panel.editActivity">Modifier l'activité</span></li>
-                                    <li class="classroom-clickable col-12 dropdown-item" onclick="attributeActivity(${arrayIndexesActivities[i].id},${arrayIndexesActivities[i].reference})"><i class="fas fa-user-alt"></i> <span data-i18n="classroom.classes.panel.editAttribution">Modifier l'attribution</span></li>
-                                    <li class="dropdown-item classroom-clickable col-12" onclick="undoAttributeActivity(${arrayIndexesActivities[i].reference},'${Main.getClassroomManager().getClassroomIdByLink(ClassroomSettings.classroom)}')"><i class="fas fa-trash-alt"></i> <span data-i18n="classroom.classes.panel.removeAttribution">Retirer l'attribution</span></li>`;
-                
-                
-                    $('#header-table-teach').append(`
-                        ${thModular}
-                        <div class="dropdown dropdown-act m-auto" style="width:30px;">
-                            <div id="dropdown-act-${activityNumber}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="span-act">Act.</br>n°${ activityNumber }</span>
-                                    <i style="display:none;font-size:2em;" class="fa fa-cog i-act" aria-hidden="true"></i>
-                                    <div class="dropdown-menu" aria-labelledby="dropdown-act-${activityNumber}" data-id="${arrayIndexesActivities[i].id}" style="text-transform: none;">
-                                    ${optionContent}
-                                </div>
-                            </div>
-                        </th>`
-                    );
-                    activityNumber++;
-                } else {
-                    let tableLength = `colspan="${currentActivity.activitiesReferences.length}"`;
-                    let thModular = `<th data-bs-toggle="tooltip" class="border-header-class" ${tableLength} data-bs-placement="top" title="${currentActivity.course.title}">`;
-                    optionContent = `
-                    <li class="ms-5" style="border-bottom:solid 2px black;">
-                        <b>${currentActivity.course.title}</b>
-                    </li>
-                    
-                    <li class="classroom-clickable col-12 dropdown-item " onclick="coursesManager.courseOverview(${currentActivity.course.id})" ><i class="fas fa-eye"></i> <span data-i18n="courses.show">Voir le parcours</span></li>
-                    <li class="classroom-clickable col-12 dropdown-item" onclick="coursesManager.updateCourse(${currentActivity.course.id})"><i class="fas fa-pen"></i> <span data-i18n="courses.update">Modifier le parcours</span></li>
-                    <li class="classroom-clickable col-12 dropdown-item" onclick="coursesManager.attributeCourse(${currentActivity.course.id}, ${currentActivity.reference})"><i class="fas fa-user-alt"></i> <span data-i18n="classroom.classes.panel.editAttribution">Modifier l'attribution</span></li>
-                    <li class="dropdown-item classroom-clickable col-12" onclick="coursesManager.undoAttribution(${currentActivity.course.id}, ${currentActivity.reference}, ${classroomId})"><i class="fas fa-trash-alt"></i> <span data-i18n="classroom.classes.panel.removeAttribution">Retirer l'attribution</span></li>`;
-                
-                    $('#header-table-teach').append(`
-                        ${thModular}
-                        <div class="dropdown dropdown-act m-auto" style="width:30px;">
-                            <div id="dropdown-act-${activityNumber}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    ${`<span class="span-act">Par.</br>n°${ activityNumber }</span>`}
-                                    <i style="display:none;font-size:2em;" class="fa fa-cog i-act" aria-hidden="true"></i>
-                                    <div class="dropdown-menu" aria-labelledby="dropdown-act-${activityNumber}" data-id="" style="text-transform: none;">
-                                    ${optionContent}
-                                </div>
-                            </div>
-                        </th>`
-                    );
-                    activityNumber++;
+            if(currentActivity !== undefined){
+                let isCourse = false;
+                if (currentActivity.hasOwnProperty('courseState')) {
+                    isCourse = true;
                 }
-            }
 
-            // Display the current student activities in the dashboard
-            if (currentActivity && !isCourse) {
-                html += renderActivityDashboard(currentActivity);
-            } else if (isCourse) {
-                if (currentActivity.activitiesReferences) {
-                    for(let j = 0; j < currentActivity.activitiesReferences.length; j++) {
-                        let tempActivity = findOneActivityLinkUserByReference(currentActivity.activitiesReferences[j], element);
-                        if (tempActivity) {
-                            html += renderActivityDashboard(tempActivity);
-                        }
+                if (element.user.pseudo == demoStudentName) {
+                    let thModular = "";
+                    let optionContent = "";
+                    if (!isCourse) {
+                        thModular = `<th data-bs-toggle="tooltip" class="border-header-class" data-bs-placement="top" title="${arrayIndexesActivities[i].title.replaceAll('"', " ")}">`;
+                        optionContent = `<li class="ms-5" style="border-bottom:solid 2px black;">
+                                            <b>${ arrayIndexesActivities[i].title }</b>
+                                        </li>
+                                        <li class="classroom-clickable col-12 dropdown-item " onclick="activityWatch(${arrayIndexesActivities[i].id})" ><i class="fas fa-eye"></i> <span data-i18n="classroom.classes.panel.seeActivity">Voir l'activité</span></li>
+                                        <li class=" classroom-clickable col-12 dropdown-item" onclick="activityModify(${arrayIndexesActivities[i].id})"><i class="fas fa-pen"></i> <span data-i18n="classroom.classes.panel.editActivity">Modifier l'activité</span></li>
+                                        <li class="classroom-clickable col-12 dropdown-item" onclick="attributeActivity(${arrayIndexesActivities[i].id},${arrayIndexesActivities[i].reference})"><i class="fas fa-user-alt"></i> <span data-i18n="classroom.classes.panel.editAttribution">Modifier l'attribution</span></li>
+                                        <li class="dropdown-item classroom-clickable col-12" onclick="undoAttributeActivity(${arrayIndexesActivities[i].reference},'${Main.getClassroomManager().getClassroomIdByLink(ClassroomSettings.classroom)}')"><i class="fas fa-trash-alt"></i> <span data-i18n="classroom.classes.panel.removeAttribution">Retirer l'attribution</span></li>`;
+                    
+                    
+                        $('#header-table-teach').append(`
+                            ${thModular}
+                            <div class="dropdown dropdown-act m-auto" style="width:30px;">
+                                <div id="dropdown-act-${activityNumber}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="span-act">Act.</br>n°${ activityNumber }</span>
+                                        <i style="display:none;font-size:2em;" class="fa fa-cog i-act" aria-hidden="true"></i>
+                                        <div class="dropdown-menu" aria-labelledby="dropdown-act-${activityNumber}" data-id="${arrayIndexesActivities[i].id}" style="text-transform: none;">
+                                        ${optionContent}
+                                    </div>
+                                </div>
+                            </th>`
+                        );
+                        activityNumber++;
+                    } else {
+                        let tableLength = `colspan="${currentActivity.activitiesReferences.length}"`;
+                        let thModular = `<th data-bs-toggle="tooltip" class="border-header-class" ${tableLength} data-bs-placement="top" title="${currentActivity.course.title}">`;
+                        optionContent = `
+                        <li class="ms-5" style="border-bottom:solid 2px black;">
+                            <b>${currentActivity.course.title}</b>
+                        </li>
                         
+                        <li class="classroom-clickable col-12 dropdown-item " onclick="coursesManager.courseOverview(${currentActivity.course.id})" ><i class="fas fa-eye"></i> <span data-i18n="courses.show">Voir le parcours</span></li>
+                        <li class="classroom-clickable col-12 dropdown-item" onclick="coursesManager.updateCourse(${currentActivity.course.id})"><i class="fas fa-pen"></i> <span data-i18n="courses.update">Modifier le parcours</span></li>
+                        <li class="classroom-clickable col-12 dropdown-item" onclick="coursesManager.attributeCourse(${currentActivity.course.id}, ${currentActivity.reference})"><i class="fas fa-user-alt"></i> <span data-i18n="classroom.classes.panel.editAttribution">Modifier l'attribution</span></li>
+                        <li class="dropdown-item classroom-clickable col-12" onclick="coursesManager.undoAttribution(${currentActivity.course.id}, ${currentActivity.reference}, ${classroomId})"><i class="fas fa-trash-alt"></i> <span data-i18n="classroom.classes.panel.removeAttribution">Retirer l'attribution</span></li>`;
+                    
+                        $('#header-table-teach').append(`
+                            ${thModular}
+                            <div class="dropdown dropdown-act m-auto" style="width:30px;">
+                                <div id="dropdown-act-${activityNumber}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        ${`<span class="span-act">Par.</br>n°${ activityNumber }</span>`}
+                                        <i style="display:none;font-size:2em;" class="fa fa-cog i-act" aria-hidden="true"></i>
+                                        <div class="dropdown-menu" aria-labelledby="dropdown-act-${activityNumber}" data-id="" style="text-transform: none;">
+                                        ${optionContent}
+                                    </div>
+                                </div>
+                            </th>`
+                        );
+                        activityNumber++;
                     }
                 }
-            } else {
-                if (arrayIndexesActivities[i].isCourse) {
-                    for (let k = 0; k < arrayIndexesActivities[i].courseLength; k++) {
+
+                // Display the current student activities in the dashboard
+                if (currentActivity && !isCourse) {
+                    html += renderActivityDashboard(currentActivity);
+                } else if (isCourse) {
+                    if (currentActivity.activitiesReferences) {
+                        for(let j = 0; j < currentActivity.activitiesReferences.length; j++) {
+                            let tempActivity = findOneActivityLinkUserByReference(currentActivity.activitiesReferences[j], element);
+                            if (tempActivity) {
+                                html += renderActivityDashboard(tempActivity);
+                            }
+                            
+                        }
+                    }
+                } else {
+                    if (arrayIndexesActivities[i].isCourse) {
+                        for (let k = 0; k < arrayIndexesActivities[i].courseLength; k++) {
+                            html += `<td class="no-activity bilan-cell"></td>`;
+                        }
+                    } else {
                         html += `<td class="no-activity bilan-cell"></td>`;
                     }
-                } else {
-                    html += `<td class="no-activity bilan-cell"></td>`;
                 }
             }
         }

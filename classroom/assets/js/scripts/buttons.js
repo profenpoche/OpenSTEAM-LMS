@@ -266,7 +266,7 @@ async function navigatePanel(id, idNav, option = "", interface = '', isOnpopstat
 
     const isLtiActivity = isActivityPanel && Activity.isLti,
     isLtiNewActivity = isNewActivityPanel && Main.getClassroomManager().getActivityIsLti(),
-    isStudentLtiActivity = UserManager.getUser().isRegular 
+    isStudentLtiActivity = UserManager.getUser() && UserManager.getUser().isRegular 
         ? false
         : Activity.activity
             ? isActivityPanel && Activity.activity.isLti
