@@ -1,4 +1,10 @@
 <?php
+
+$allowed_lang = array('fr', 'en');
+if (!empty($_REQUEST['lang']) && in_array($_REQUEST['lang'], $allowed_lang)){
+    $lang = $_REQUEST['lang'];
+    setcookie('lng', $lang);
+}
 $openClassroomDir = __DIR__."/../../openClassroom";
 if(is_dir($openClassroomDir)){
     require __DIR__."/../../vendor/autoload.php";
@@ -37,4 +43,9 @@ require_once(__DIR__ . "/header.html");
 $demoStudent = str_replace('"', '', $demoStudent);
 echo "<script>const demoStudentName = `{$demoStudent}`</script>";
 
-require_once(__DIR__ . "/home.html");
+// echo '<pre>';print_r($_COOKIE);echo '</pre>';
+$html = file_get_contents(__DIR__ . "/home.html");
+if(isset($_COOKIE['lng']) && $_COOKIE['lng'] === 'fr'){
+    $html = str_replace('/app-lms/', '/app-lms2/', $html);
+}
+echo $html;

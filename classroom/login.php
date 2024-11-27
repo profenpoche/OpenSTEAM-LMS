@@ -23,7 +23,12 @@ if (isset($_ENV['COOKIE_DOMAIN'])){
     ini_set('session.cookie_samesite', 'None');
     ini_set('session.cookie_domain', $_ENV['COOKIE_DOMAIN']);
 }
-setcookie('lng',!empty($_ENV['VS_LANG']) ? $_ENV['VS_LANG'] : 'en');
+$lang = !empty($_ENV['VS_LANG']) ? $_ENV['VS_LANG'] : 'en';
+$allowed_lang = array('fr', 'en');
+if (!empty($_REQUEST['lang']) && in_array($_REQUEST['lang'], $allowed_lang)){
+    $lang = $_REQUEST['lang'];
+}
+setcookie('lng', $lang);
 session_start();
 
 if(isset($_SESSION['id']) && strpos($_SESSION["id"], 'classroom_') === 0){
