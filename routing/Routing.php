@@ -74,6 +74,7 @@ function cors()
         $origins[] = 'https://ose.kidaia.com';
         $origins[] = 'https://dev.ose.kidaia.com';
         $origins[] = 'https://web.mathexpedition.com';
+        $origins[] = 'https://kaligo.mathia.education';
 
         if (isset($_SERVER['HTTP_ORIGIN'])) {
             if (in_array($_SERVER['HTTP_ORIGIN'], $origins)) {
