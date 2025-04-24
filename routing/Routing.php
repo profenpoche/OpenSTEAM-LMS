@@ -156,6 +156,7 @@ try {
             $regularDS = $regular->jsonSerialize();
             $user['isRegular'] = $regularDS['email'];
             $user['isPrivate']= $regular->isPrivateFlag();
+            $user['bio'] = json_decode($regularDS['bio']);
         } catch (error $e) {
             $user['isRegular'] = false;
         }
