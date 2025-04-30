@@ -74,7 +74,9 @@ function cors()
         $origins[] = 'https://ose.kidaia.com';
         $origins[] = 'https://dev.ose.kidaia.com';
         $origins[] = 'https://web.mathexpedition.com';
+        $origins[] = 'https://web.mathia.education';
         $origins[] = 'https://kaligo.mathia.education';
+        $origins[] = 'ionic://mathia.education';
 
         if (isset($_SERVER['HTTP_ORIGIN'])) {
             if (in_array($_SERVER['HTTP_ORIGIN'], $origins)) {
@@ -156,7 +158,7 @@ try {
             $regularDS = $regular->jsonSerialize();
             $user['isRegular'] = $regularDS['email'];
             $user['isPrivate']= $regular->isPrivateFlag();
-            $user['bio'] = json_decode($regularDS['bio']);
+            $user['bio'] = json_decode(html_entity_decode(html_entity_decode($regularDS['bio'])));
         } catch (error $e) {
             $user['isRegular'] = false;
         }
